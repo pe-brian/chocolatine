@@ -6,10 +6,10 @@ from .agg_function import AggFunction
 
 class Col:
 
-    def __init__(self, name: str, new_name: str = None, aggregation_op: AggFunction = None, ordering: Ordering = None):
+    def __init__(self, name: str, new_name: str = None, agg_function: AggFunction = None, ordering: Ordering = None):
         self.name = name
         self.new_name = new_name
-        self.aggregation_op = aggregation_op
+        self.agg_function = agg_function
         self.ordering = ordering
 
     def __gt__(self, value):
@@ -35,18 +35,34 @@ class Col:
         self.new_name = new_name
         return self
 
-    def aggregate(self, aggregation_op: AggFunction):
-        self.aggregation_op = aggregation_op
+    def aggregate(self, agg_function: AggFunction):
+        self.agg_function = agg_function
         return self
 
     def sum(self):
-        self.aggregation_op = AggFunction.Sum
+        self.agg_function = AggFunction.Sum
+        return self
+
+    def count(self):
+        self.agg_function = AggFunction.Count
+        return self
+
+    def max(self):
+        self.agg_function = AggFunction.Max
+        return self
+
+    def min(self):
+        self.agg_function = AggFunction.Min
+        return self
+
+    def average(self):
+        self.agg_function = AggFunction.Average
         return self
 
     def build(self):
         expr = self.name
-        if self.aggregation_op:
-            expr = f"{self.aggregation_op.value}({expr})"
+        if self.agg_function:
+            expr = f"{self.agg_function.value}({expr})"
         if self.new_name:
             expr += f" AS {self.new_name}"
         return expr
