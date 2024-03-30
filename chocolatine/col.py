@@ -2,11 +2,12 @@ from .condition import Condition
 from .operator import Operator
 from .ordering import Ordering
 from .agg_function import AggFunction
+from .sql_function import SqlFunction
 
 
 class Col:
 
-    def __init__(self, name: str, new_name: str = None, agg_function: AggFunction = None, ordering: Ordering = None, ref_table: str = None):
+    def __init__(self, name: str, new_name: str = None, agg_function: AggFunction = None, sql_function: SqlFunction = None, ordering: Ordering = None, ref_table: str = None):
         if "." in name:
             parts = name.split(".")
             if len(parts) != 2:
@@ -16,6 +17,7 @@ class Col:
         self.new_name = new_name
         self.ref_table = ref_table
         self.agg_function = agg_function
+        self.sql_function = sql_function
         self.ordering = ordering
 
     def __gt__(self, value):
@@ -69,6 +71,8 @@ class Col:
         expr = f"{(self.ref_table + ".") if self.ref_table else ""}{self.name}"
         if self.agg_function:
             expr = f"{self.agg_function.value}({expr})"
+        if self.sql_function:
+            expr = f"{self.sql_function.value}({expr})"
         if self.new_name:
             expr += f" AS {self.new_name}"
         return expr
