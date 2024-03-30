@@ -6,20 +6,26 @@ from .agg_function import AggFunction
 
 class Col:
 
-    def __init__(self, name: str, new_name: str = None, agg_function: AggFunction = None, ordering: Ordering = None):
+    def __init__(self, name: str, new_name: str = None, agg_function: AggFunction = None, ordering: Ordering = None, ref_table: str = None):
+        if "." in name:
+            parts = name.split(".")
+            if len(parts) != 2:
+                raise Exception("Unable to resolve the col name")
+            (ref_table, name) = parts
         self.name = name
         self.new_name = new_name
+        self.ref_table = ref_table
         self.agg_function = agg_function
         self.ordering = ordering
 
     def __gt__(self, value):
-        return Condition(left_value=self.name, op=Operator.GreaterThan, right_value=value)
+        return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
 
     def __eq__(self, value):
-        return Condition(left_value=self.name, op=Operator.Equal, right_value=value)
+        return Condition(left_value=self, op=Operator.Equal, right_value=value)
 
     def __ne__(self, value):
-        return Condition(left_value=self.name, op=Operator.NotEqual, right_value=value)
+        return Condition(left_value=self, op=Operator.NotEqual, right_value=value)
 
     def order(self, ordering: Ordering):
         self.ordering = ordering
@@ -60,7 +66,7 @@ class Col:
         return self
 
     def build(self):
-        expr = self.name
+        expr = f"{(self.ref_table + ".") if self.ref_table else ""}{self.name}"
         if self.agg_function:
             expr = f"{self.agg_function.value}({expr})"
         if self.new_name:

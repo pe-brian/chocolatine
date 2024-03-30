@@ -1,4 +1,5 @@
 from chocolatine import Request, Col, Condition, Operator, AggFunction
+from chocolatine.join_type import JoinType
 from chocolatine.ordering import Ordering
 
 
@@ -85,10 +86,20 @@ def test_col_average():
 
 
 def test_request_001():
-    assert Request(compact=True) \
+    assert Request() \
         .table("payment") \
         .select(Col("staff_id").asc(), Col("amount").alias("total_amount").sum().desc()) \
         .group_by("staff_id") \
         .filter((Col("amount") > 0.99) & ~(Col("customer_id") == 3)) \
         .build() == \
         "SELECT staff_id, SUM(amount) AS total_amount FROM payment WHERE ((amount > 0.99) AND NOT(customer_id = 3)) GROUP BY staff_id ORDER BY staff_id ASC, amount DESC"
+
+
+def test_request_002():
+    assert Request() \
+        .table("film") \
+        .select("title", "first_name", "last_name") \
+        .join("film_actor", JoinType.Inner, Col("film.film_id") == Col("film_actor.film_id")) \
+        .join("actor", JoinType.Inner, Col("film_actor.actor_id") == Col("actor.actor_id")) \
+        .build() == \
+        "SELECT title, first_name, last_name FROM film INNER JOIN film_actor ON (film.film_id = film_actor.film_id) INNER JOIN actor ON (film_actor.actor_id = actor.actor_id)"

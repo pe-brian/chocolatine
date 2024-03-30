@@ -1,3 +1,4 @@
+from chocolatine.join_type import JoinType
 from .condition import Condition
 from .col import Col
 
@@ -11,14 +12,15 @@ class Request:
         self.group_by_cols = []
         self.where_condition = []
         self.having_condition = []
+        self.joins = []
         self.compact = compact
 
     def table(self, table_name: str):
         self.table_name = table_name
         return self
 
-    def select(self, *cols):
-        self.cols = cols
+    def select(self, *selected_cols):
+        self.selected_cols = selected_cols
         return self
 
     def distinct(self):
@@ -36,9 +38,16 @@ class Request:
         self.group_by_cols = cols
         return self
 
+    def join(self, table: str, joinType: JoinType, condition: Condition):
+        self.joins.append((table, joinType, condition))
+        return self
+
     def build_select(self):
         expr = "SELECT "
-        cols = ", ".join([str(col) for col in self.cols])
+        if self.selected_cols:
+            cols = ", ".join([str(col) for col in self.selected_cols])
+        else:
+            cols = "*"
         if self.unique:
             expr += f"DISTINCT({cols})"
         else:
@@ -65,12 +74,19 @@ class Request:
 
     def build_order_by(self):
         ordering = []
-        for col in self.cols:
+        for col in self.selected_cols:
             if type(col) is Col and col.ordering is not None:
                 ordering.append(f"{col.name} {col.ordering.value}")
         if ordering:
             return f"ORDER BY {", ".join(ordering)}"
         return ""
+
+    def build_join(self):
+        exprs = []
+        for table, join_type, condition in self.joins:
+            exprs.append(f"{join_type.value} JOIN {table}")
+            exprs.append(f"ON {condition}")
+        return exprs
 
     def build(self):
         return f"{" " if self.compact else "\n"}".join(
@@ -78,6 +94,7 @@ class Request:
                 self.build_select(),
                 self.build_from(),
                 self.build_where(),
+                *self.build_join(),
                 self.build_group_by(),
                 self.build_having(),
                 self.build_order_by()
