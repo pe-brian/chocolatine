@@ -1,4 +1,5 @@
 from chocolatine import Request, Col, Condition, Operator, AggFunction
+from chocolatine.ordering import Ordering
 
 
 def test_condition_op_eq():
@@ -37,12 +38,50 @@ def test_condition_op_like():
     assert Condition(42, Operator.Like, 42).build() == "(42 LIKE 42)"
 
 
+def test_col_init():
+    col = Col(name="amount", new_name="new_amount", agg_function=AggFunction.Count, ordering=Ordering.Ascending)
+    assert col.name == "amount"
+    assert col.new_name == "new_amount"
+    assert col.agg_function == AggFunction.Count
+    assert col.ordering == Ordering.Ascending
+
+
 def test_col_build():
     assert Col("amount").build() == "amount"
-    assert Col("amount", agg_function=AggFunction.Sum).build() == "sum(amount)"
-    assert Col("amount", "total_amount", AggFunction.Sum).build() == "sum(amount) AS total_amount"
-    assert Col("amount").sum() == "sum(amount)"
-    assert Col("amount").sum().alias("total_amount") == "sum(amount) AS total_amount"
+    assert Col("amount").build() == str(Col("amount"))
+    assert Col("amount", agg_function=AggFunction.Sum).build() == "SUM(amount)"
+    assert Col("amount", "total_amount", AggFunction.Sum).build() == "SUM(amount) AS total_amount"
+    assert Col("amount", "total_amount").build() == "amount AS total_amount"
+
+
+def test_col_alias():
+    assert Col("amount").alias("total_amount") != Col("amount")
+    assert Col("amount").alias("total_amount") == "amount AS total_amount"
+
+
+def test_col_sum():
+    assert Col("amount").sum() == "SUM(amount)"
+    assert Col("amount").sum() == Col("amount", agg_function=AggFunction.Sum).build()
+
+
+def test_col_count():
+    assert Col("amount").count() == "COUNT(amount)"
+    assert Col("amount").count() == Col("amount", agg_function=AggFunction.Count).build()
+
+
+def test_col_max():
+    assert Col("amount").max() == "MAX(amount)"
+    assert Col("amount").max() == Col("amount", agg_function=AggFunction.Max).build()
+
+
+def test_col_min():
+    assert Col("amount").min() == "MIN(amount)"
+    assert Col("amount").min() == Col("amount", agg_function=AggFunction.Min).build()
+
+
+def test_col_average():
+    assert Col("amount").average() == "AVG(amount)"
+    assert Col("amount").average() == Col("amount", agg_function=AggFunction.Average).build()
 
 
 def test_request_001():
@@ -52,4 +91,4 @@ def test_request_001():
         .group_by("staff_id") \
         .filter((Col("amount") > 0.99) & ~(Col("customer_id") == 3)) \
         .build() == \
-        "SELECT staff_id, sum(amount) AS total_amount FROM payment WHERE ((amount > 0.99) AND NOT(customer_id = 3)) GROUP BY staff_id ORDER BY staff_id ASC, amount DESC"
+        "SELECT staff_id, SUM(amount) AS total_amount FROM payment WHERE ((amount > 0.99) AND NOT(customer_id = 3)) GROUP BY staff_id ORDER BY staff_id ASC, amount DESC"
