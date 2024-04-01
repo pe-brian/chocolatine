@@ -5,4 +5,3 @@ class SqlFunction(Enum):
 
     Upper = "UPPER"
     Lower = "LOWER"
-    Concat = "CONCAT"

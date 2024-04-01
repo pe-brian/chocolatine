@@ -12,3 +12,4 @@ class Operator(Enum):
     And = "AND"
     Or = "OR"
     Like = "LIKE"
+    In = "IN"

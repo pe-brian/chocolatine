@@ -1,12 +1,13 @@
 from chocolatine.join_type import JoinType
 from .condition import Condition
 from .col import Col
+from .table import Table
 
 
 class Request:
 
     def __init__(self, compact: bool = True):
-        self.table_name = None
+        self._table = None
         self.selected_cols = []
         self.unique = False
         self.group_by_cols = []
@@ -15,8 +16,8 @@ class Request:
         self.joins = []
         self.compact = compact
 
-    def table(self, table_name: str):
-        self.table_name = table_name
+    def table(self, table_name: str, table_new_name: str = None):
+        self._table = Table(table_name, table_new_name)
         return self
 
     def select(self, *selected_cols):
@@ -55,7 +56,7 @@ class Request:
         return expr
 
     def build_from(self):
-        return f"FROM {self.table_name}"
+        return f"FROM {self._table}"
 
     def build_where(self):
         if self.where_condition:

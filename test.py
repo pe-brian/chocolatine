@@ -1,6 +1,7 @@
 from chocolatine import Request, Col, Condition, Operator, AggFunction
 from chocolatine.join_type import JoinType
 from chocolatine.ordering import Ordering
+from chocolatine.table import Table
 
 
 def test_condition_op_eq():
@@ -38,6 +39,8 @@ def test_condition_op_or():
 def test_condition_op_like():
     assert Condition(42, Operator.Like, 42).build() == "(42 LIKE 42)"
 
+
+###
 
 def test_col_init():
     col = Col(name="amount", new_name="new_amount", agg_function=AggFunction.Count, ordering=Ordering.Ascending)
@@ -85,6 +88,27 @@ def test_col_average():
     assert Col("amount").average() == Col("amount", agg_function=AggFunction.Average).build()
 
 
+def test_col_concat():
+    assert Col(Col("first_name") & " " & Col("last_name")).alias("name").build() == "CONCAT(first_name, ' ', last_name) AS name"
+
+
+# TD : test if build() methods are immutable
+
+###
+
+
+def test_table_init():
+    table = Table(name="payment", new_name="p")
+    assert table.name == "payment" and table.new_name == "p"
+
+
+def test_table_build():
+    assert Table("payment").build() == "payment"
+    assert Table("payment", "p").build() == "payment AS p"
+
+###
+
+
 def test_request_001():
     assert Request() \
         .table("payment") \
@@ -120,12 +144,11 @@ FROM actor\
 
 def test_request_1b():
     """ Display the first and last name of each actor in a single column in upper case letters. Name the column `Actor Name` """
-    # TD : implement UPPER & CONCAT function
-    assert Request() \
+    assert Request(compact=False) \
         .table("actor") \
-        .select("first_name", "last_name") \
+        .select(Col(Col("first_name") & " " & Col("last_name")).alias("actor_name").upper()) \
         .build() == """\
-SELECT UPPER(CONCAT(first_name, ' ', last_name)) AS 'Actor Name'
+SELECT UPPER(CONCAT(first_name, ' ', last_name)) AS actor_name
 FROM actor\
 """
 
@@ -133,18 +156,18 @@ FROM actor\
 def test_request_2a():
     """ You need to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." What is 
         one query would you use to obtain this information? """
-    assert Request() \
+    assert Request(compact=False) \
         .table("actor") \
         .select("actor_id", "first_name", "last_name") \
         .filter(Col("first_name") == 'Joe') \
         .build() == """\
-SELECT first_name, last_name, actor_id
+SELECT actor_id, first_name, last_name
 FROM actor
-WHERE first_name = "Joe"\
+WHERE (first_name = Joe)\
 """
 
 # 2b. Find all actors whose last name contain the letters `GEN`.
-  
+
 #   SELECT * FROM actor
 #   WHERE last_name LIKE '%GEN%';
 

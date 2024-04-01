@@ -7,3 +7,4 @@ from .ordering import Ordering  # noqa
 from .request import Request  # noqa
 from .type import Type  # noqa
 from .join_type import JoinType  # noqa
+from .table import Table  # noqa
