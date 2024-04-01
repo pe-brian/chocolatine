@@ -58,6 +58,23 @@ def test_col_build():
     assert Col("amount", "total_amount").build() == "amount AS total_amount"
 
 
+def test_col_build_immutable():
+    col = Col(
+        name="amount",
+        new_name="total_amount",
+        ref_table="payment",
+        agg_function=AggFunction.Sum
+    )
+    col.build()
+    assert col.name == "amount"
+    assert col.new_name == "total_amount"
+    assert col.ref_table == "payment"
+    assert col.agg_function == AggFunction.Sum
+    assert col.sql_function is None
+    assert col.ordering is None
+    assert col.concatenation == []
+
+
 def test_col_alias():
     assert Col("amount").alias("total_amount") != Col("amount")
     assert Col("amount").alias("total_amount") == "amount AS total_amount"

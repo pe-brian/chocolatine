@@ -1,21 +1,23 @@
-class Table:
+from typing import Self
+from .expr import Expr
 
-    def __init__(self, name: str, new_name: str = None):
+
+class Table(Expr):
+
+    def __init__(
+            self,
+            name: str,
+            new_name: str = None
+    ):
         self.name = name
         self.new_name = new_name
 
-    def alias(self, new_name: str):
+    def alias(self, new_name: str) -> Self:
         self.new_name = new_name
         return self
 
-    def build(self):
+    def build(self) -> str:
         expr = self.name
         if self.new_name:
             expr += f" AS {self.new_name}"
         return expr
-
-    def __str__(self):
-        return self.build()
-
-    def __expr__(self):
-        return self.build()
