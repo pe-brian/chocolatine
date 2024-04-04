@@ -1,5 +1,6 @@
 from typing import Self
 
+from .agg_function import AggFunction
 from .expr import Expr
 from .join_type import JoinType
 from .condition import Condition
@@ -34,11 +35,11 @@ class Request(Expr):
         self._unique = True
         return self
 
-    def filter(self, where_condition: Condition = None, having_condition: Condition = None) -> Self:
-        if where_condition is None and having_condition is None:
-            raise Exception("At least one of where or having condition must be specified")
-        self._where_condition = where_condition
-        self._having_condition = having_condition
+    def filter(self, condition) -> Self:
+        if any(x in condition.build() for x in set(e.value for e in AggFunction)):
+            self._having_condition = condition
+        else:
+            self._where_condition = condition
         return self
 
     def group_by(self, *cols) -> Self:
