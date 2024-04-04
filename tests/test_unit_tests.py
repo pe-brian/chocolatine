@@ -74,35 +74,33 @@ def test_col_build_immutable():
 
 
 def test_col_alias():
-    assert Col("amount").alias("total_amount") != Col("amount")
-    assert Col("amount").alias("total_amount") == "'amount' AS 'total_amount'"
-
-# ??
+    assert Col("amount").alias("total_amount").build() != Col("amount")
+    assert Col("amount").alias("total_amount").build() == "'amount' AS 'total_amount'"
 
 
-def test_col_sum():
-    assert Col("amount").sum() == "SUM('amount')"
-    assert Col("amount").sum() == Col("amount", agg_function=AggFunction.Sum).build()
+def test_col_summ():
+    assert Col("amount").sum().build() == "SUM('amount')"
+    assert Col("amount").sum().build() == Col("amount", agg_function=AggFunction.Sum).build()
 
 
 def test_col_count():
-    assert Col("amount").count() == "COUNT('amount')"
-    assert Col("amount").count() == Col("amount", agg_function=AggFunction.Count).build()
+    assert Col("amount").count().build() == "COUNT('amount')"
+    assert Col("amount").count().build() == Col("amount", agg_function=AggFunction.Count).build()
 
 
 def test_col_max():
-    assert Col("amount").max() == "MAX('amount')"
-    assert Col("amount").max() == Col("amount", agg_function=AggFunction.Max).build()
+    assert Col("amount").max().build() == "MAX('amount')"
+    assert Col("amount").max().build() == Col("amount", agg_function=AggFunction.Max).build()
 
 
 def test_col_min():
-    assert Col("amount").min() == "MIN('amount')"
-    assert Col("amount").min() == Col("amount", agg_function=AggFunction.Min).build()
+    assert Col("amount").min().build() == "MIN('amount')"
+    assert Col("amount").min().build() == Col("amount", agg_function=AggFunction.Min).build()
 
 
 def test_col_average():
-    assert Col("amount").average() == "AVG('amount')"
-    assert Col("amount").average() == Col("amount", agg_function=AggFunction.Average).build()
+    assert Col("amount").average().build() == "AVG('amount')"
+    assert Col("amount").average().build() == Col("amount", agg_function=AggFunction.Average).build()
 
 
 def test_col_concat():
