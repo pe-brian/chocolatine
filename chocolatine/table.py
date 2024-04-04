@@ -1,4 +1,6 @@
 from typing import Self
+
+from .utils import quote_expr
 from .expr import Expr
 
 
@@ -9,15 +11,15 @@ class Table(Expr):
             name: str,
             new_name: str = None
     ):
-        self.name = name
-        self.new_name = new_name
+        self._name = name
+        self._new_name = new_name
 
     def alias(self, new_name: str) -> Self:
-        self.new_name = new_name
+        self._new_name = new_name
         return self
 
     def build(self) -> str:
-        expr = self.name
-        if self.new_name:
-            expr += f" AS {self.new_name}"
+        expr = quote_expr(self._name)
+        if self._new_name:
+            expr += f" AS '{self._new_name}'"
         return expr

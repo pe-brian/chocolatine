@@ -7,8 +7,8 @@ def test_request_1a():
         .table("actor") \
         .select("first_name", "last_name") \
         .build() == """\
-SELECT first_name, last_name
-FROM actor\
+SELECT 'first_name', 'last_name'
+FROM 'actor'\
 """
 
 
@@ -16,10 +16,10 @@ def test_request_1b():
     """ Display the first and last name of each actor in a single column in upper case letters. Name the column `Actor Name` """
     assert Request(compact=False) \
         .table("actor") \
-        .select(Col(Col("first_name") & " " & Col("last_name")).alias("actor_name").upper()) \
+        .select((Col("first_name") & " " & Col("last_name")).upper().alias("actor_name")) \
         .build() == """\
-SELECT UPPER(CONCAT(first_name, ' ', last_name)) AS actor_name
-FROM actor\
+SELECT UPPER(CONCAT('first_name', ' ', 'last_name')) AS 'actor_name'
+FROM 'actor'\
 """
 
 
@@ -31,9 +31,9 @@ def test_request_2a():
         .select("actor_id", "first_name", "last_name") \
         .filter(Col("first_name") == 'Joe') \
         .build() == """\
-SELECT actor_id, first_name, last_name
-FROM actor
-WHERE (first_name = Joe)\
+SELECT 'actor_id', 'first_name', 'last_name'
+FROM 'actor'
+WHERE ('first_name' = 'Joe')\
 """
 
 # 2b. Find all actors whose last name contain the letters `GEN`.
