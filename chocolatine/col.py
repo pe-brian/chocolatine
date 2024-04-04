@@ -113,13 +113,13 @@ class Col(Expr):
         self._agg_function = AggFunction.Average
         return self
 
-    def build_concat(self) -> str:
+    def _build_concat(self) -> str:
         return f"CONCAT({", ".join(quote_expr(x) if type(x) is str else str(x) for x in self._concatenation)})"
 
     def build(self) -> str:
         expr = f"{(self._ref_table + ".") if self._ref_table else ""}{self._name}"
         if self._concatenation:
-            expr = self.build_concat()
+            expr = self._build_concat()
         if self._agg_function:
             expr = f"{self._agg_function.value}({expr})"
         if self._sql_function:

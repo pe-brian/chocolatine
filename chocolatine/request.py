@@ -49,32 +49,32 @@ class Request(Expr):
         self._joins.append((table, joinType, condition))
         return self
 
-    def build_select(self) -> str:
+    def _build_select(self) -> str:
         expr = "SELECT "
         cols = ", ".join(list(col if type(col) is str else col.build() for col in self._selected_cols)) if self._selected_cols else "*"
         expr += f"DISTINCT({cols})" if self._unique else cols
         return expr
 
-    def build_from(self) -> str:
+    def _build_from(self) -> str:
         return f"FROM {self._table}"
 
-    def build_where(self) -> str:
+    def _build_where(self) -> str:
         return f"WHERE {self._where_condition}" if self._where_condition else ""
 
-    def build_group_by(self) -> str:
+    def _build_group_by(self) -> str:
         return f"GROUP BY {", ".join(self._group_by_cols)}" if self._group_by_cols else ""
 
-    def build_having(self) -> str:
+    def _build_having(self) -> str:
         return f"HAVING {self._having_condition}" if self._having_condition else ""
 
-    def build_order_by(self) -> str:
+    def _build_order_by(self) -> str:
         ordering = []
         for col in self._selected_cols:
             if type(col) is Col and col._ordering is not None:
                 ordering.append(f"{col._name} {col._ordering.value}")
         return f"ORDER BY {", ".join(ordering)}" if ordering else ""
 
-    def build_join(self) -> str:
+    def _build_join(self) -> str:
         exprs = []
         for table, join_type, condition in self._joins:
             exprs.append(f"{join_type.value} JOIN {table}")
@@ -84,12 +84,12 @@ class Request(Expr):
     def build(self) -> str:
         return f"{" " if self._compact else "\n"}".join(
             part for part in [
-                self.build_select(),
-                self.build_from(),
-                self.build_where(),
-                *self.build_join(),
-                self.build_group_by(),
-                self.build_having(),
-                self.build_order_by()
+                self._build_select(),
+                self._build_from(),
+                self._build_where(),
+                *self._build_join(),
+                self._build_group_by(),
+                self._build_having(),
+                self._build_order_by()
             ] if part
         )
