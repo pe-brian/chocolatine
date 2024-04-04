@@ -38,6 +38,10 @@ def test_condition_op_like():
     assert Condition(42, Operator.Like, 42).build() == "(42 LIKE 42)"
 
 
+def test_condition_op_in():
+    assert Condition(42, Operator.In, (1, 2, 24, 42)).build() == "(42 IN (1, 2, 24, 42))"
+
+
 ###
 
 def test_col_init():
@@ -78,7 +82,7 @@ def test_col_alias():
     assert Col("amount").alias("total_amount").build() == "'amount' AS 'total_amount'"
 
 
-def test_col_summ():
+def test_col_sum():
     assert Col("amount").sum().build() == "SUM('amount')"
     assert Col("amount").sum().build() == Col("amount", agg_function=AggFunction.Sum).build()
 
@@ -108,3 +112,11 @@ def test_col_concat():
     assert type(col) is Col
     assert col == "CONCAT('first_name', ' ', 'last_name')"
     assert col.alias("name").build() == "CONCAT('first_name', ' ', 'last_name') AS 'name'"
+
+
+def test_col_like():
+    assert Col("fruit").like("ap%").build() == "('fruit' LIKE 'ap%')"
+
+
+def test_col_in():
+    assert Col("fruit").isin("banana", "apple", "strawberry").build() == "('fruit' IN ('banana', 'apple', 'strawberry'))"

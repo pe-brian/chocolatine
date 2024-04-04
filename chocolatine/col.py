@@ -71,6 +71,12 @@ class Col(Expr):
     def desc(self) -> Self:
         return self.order(Ordering.Descending)
 
+    def like(self, expr: str):
+        return Condition(self, Operator.Like, expr)
+
+    def isin(self, *expr):
+        return Condition(self, Operator.In, expr)
+
     def upper(self) -> Self:
         self._sql_function = SqlFunction.Upper
         return self
