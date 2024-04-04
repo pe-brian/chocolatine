@@ -1,6 +1,5 @@
 from typing import Self
 
-from .utils import quote_expr
 from .expr import Expr
 
 
@@ -19,7 +18,7 @@ class Table(Expr):
         return self
 
     def build(self) -> str:
-        expr = quote_expr(self._name)
+        expr = self._name
         if self._new_name:
-            expr += f" AS '{self._new_name}'"
+            expr += f" AS {self._new_name}"
         return expr

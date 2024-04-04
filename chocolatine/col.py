@@ -117,7 +117,7 @@ class Col(Expr):
         return f"CONCAT({", ".join(quote_expr(x) if type(x) is str else str(x) for x in self._concatenation)})"
 
     def build(self) -> str:
-        expr = f"'{(self._ref_table + ".") if self._ref_table else ""}{self._name}'"
+        expr = f"{(self._ref_table + ".") if self._ref_table else ""}{self._name}"
         if self._concatenation:
             expr = self.build_concat()
         if self._agg_function:
@@ -125,5 +125,5 @@ class Col(Expr):
         if self._sql_function:
             expr = f"{self._sql_function.value}({expr})"
         if self._new_name:
-            expr += f" AS '{self._new_name}'"
+            expr += f" AS {self._new_name}"
         return expr

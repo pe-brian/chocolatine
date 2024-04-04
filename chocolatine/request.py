@@ -1,6 +1,5 @@
 from typing import Self
 
-from .utils import quote_expr
 from .expr import Expr
 from .join_type import JoinType
 from .condition import Condition
@@ -52,7 +51,7 @@ class Request(Expr):
 
     def build_select(self) -> str:
         expr = "SELECT "
-        cols = ", ".join(list(quote_expr(col) if type(col) is str else col.build() for col in self._selected_cols)) if self._selected_cols else "*"
+        cols = ", ".join(list(col if type(col) is str else col.build() for col in self._selected_cols)) if self._selected_cols else "*"
         expr += f"DISTINCT({cols})" if self._unique else cols
         return expr
 

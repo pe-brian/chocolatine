@@ -53,11 +53,11 @@ def test_col_init():
 
 
 def test_col_build():
-    assert Col("amount").build() == "'amount'"
+    assert Col("amount").build() == "amount"
     assert Col("amount").build() == str(Col("amount"))
-    assert Col("amount", agg_function=AggFunction.Sum).build() == "SUM('amount')"
-    assert Col("amount", "total_amount", AggFunction.Sum).build() == "SUM('amount') AS 'total_amount'"
-    assert Col("amount", "total_amount").build() == "'amount' AS 'total_amount'"
+    assert Col("amount", agg_function=AggFunction.Sum).build() == "SUM(amount)"
+    assert Col("amount", "total_amount", AggFunction.Sum).build() == "SUM(amount) AS total_amount"
+    assert Col("amount", "total_amount").build() == "amount AS total_amount"
 
 
 def test_col_build_immutable():
@@ -79,44 +79,44 @@ def test_col_build_immutable():
 
 def test_col_alias():
     assert Col("amount").alias("total_amount").build() != Col("amount")
-    assert Col("amount").alias("total_amount").build() == "'amount' AS 'total_amount'"
+    assert Col("amount").alias("total_amount").build() == "amount AS total_amount"
 
 
 def test_col_sum():
-    assert Col("amount").sum().build() == "SUM('amount')"
+    assert Col("amount").sum().build() == "SUM(amount)"
     assert Col("amount").sum().build() == Col("amount", agg_function=AggFunction.Sum).build()
 
 
 def test_col_count():
-    assert Col("amount").count().build() == "COUNT('amount')"
+    assert Col("amount").count().build() == "COUNT(amount)"
     assert Col("amount").count().build() == Col("amount", agg_function=AggFunction.Count).build()
 
 
 def test_col_max():
-    assert Col("amount").max().build() == "MAX('amount')"
+    assert Col("amount").max().build() == "MAX(amount)"
     assert Col("amount").max().build() == Col("amount", agg_function=AggFunction.Max).build()
 
 
 def test_col_min():
-    assert Col("amount").min().build() == "MIN('amount')"
+    assert Col("amount").min().build() == "MIN(amount)"
     assert Col("amount").min().build() == Col("amount", agg_function=AggFunction.Min).build()
 
 
 def test_col_average():
-    assert Col("amount").average().build() == "AVG('amount')"
+    assert Col("amount").average().build() == "AVG(amount)"
     assert Col("amount").average().build() == Col("amount", agg_function=AggFunction.Average).build()
 
 
 def test_col_concat():
     col = Col("first_name") & " " & Col("last_name")
     assert type(col) is Col
-    assert col == "CONCAT('first_name', ' ', 'last_name')"
-    assert col.alias("name").build() == "CONCAT('first_name', ' ', 'last_name') AS 'name'"
+    assert col == "CONCAT(first_name, ' ', last_name)"
+    assert col.alias("name").build() == "CONCAT(first_name, ' ', last_name) AS name"
 
 
 def test_col_like():
-    assert Col("fruit").like("ap%").build() == "('fruit' LIKE 'ap%')"
+    assert Col("fruit").like("ap%").build() == "(fruit LIKE 'ap%')"
 
 
 def test_col_in():
-    assert Col("fruit").isin("banana", "apple", "strawberry").build() == "('fruit' IN ('banana', 'apple', 'strawberry'))"
+    assert Col("fruit").isin("banana", "apple", "strawberry").build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
