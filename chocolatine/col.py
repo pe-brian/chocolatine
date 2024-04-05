@@ -61,7 +61,7 @@ class Col(Expr):
     def __rand__(self, value: Any) -> Self:
         return self.__and__(value)
 
-    def order(self, ordering: Ordering) -> Self:
+    def order(self, ordering: Ordering = Ordering.Ascending) -> Self:
         self._ordering = ordering
         return self
 
