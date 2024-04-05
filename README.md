@@ -16,7 +16,7 @@ __Concatenation & filtering__ :
 from chocolatine import Request, Col
 
 req = Request().table("customer")\
-               .select("customer_id", (Col("first_name") & Col("last_name")).upper().alias("name"))\
+               .select("customer_id", (Col("first_name") & ' ' & Col("last_name")).upper().alias("name"))\
                .filter(Col("first_name").like("%E"))
 print(req)
 ```
