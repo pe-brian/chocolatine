@@ -26,10 +26,14 @@ WHERE first_name LIKE '%E'
 
 __Group by, aggregation & filtering__ :
 ```python
-from chocolatine import sum
+from chocolatine import Request, sum
 
 req = Request().table("payment")\
-               .select("customer_id", count().alias("payment_count")), sum("amount").alias("total_amount").order()\
+               .select(
+                    "customer_id",
+                    count().alias("payment_count"),
+                    sum("amount").alias("total_amount").order()\
+               )\
                .group_by("customer_id")\
                .filter(count() > 1 & sum("amount") > 5.00)\  # Having clause condition
                .filter(Col("customer_id") != 3)  # Where clause condition
@@ -52,6 +56,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 # Basic functionnalities
 
 - Select requests
+- Distinct
 - Aliases (for columns & tables)
 - Ordering
 - Group by
@@ -76,6 +81,14 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 # Tests
 
 ```python pytest```
+
+# Install Sakila database (mySQL) with Docker
+
+```docker run -p 3306:3306 -d sakiladb/mysql:latest```
+
+# Use Chocolatine to directly request your mySQL database
+
+Take a look at : `scratch.py`
 
 # Contributors
 
