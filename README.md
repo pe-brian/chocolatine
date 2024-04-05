@@ -1,5 +1,7 @@
 # chocolatine
 
+[Image!]("https://www.pikpng.com/pngl/m/70-703059_svg-stock-pain-au-chocolat-danish-pastry-viennoiserie.png")
+
 Chocolatine is a lightweight python library designed to easily generate SQL request.
 
 # Why Chocolatine ?
