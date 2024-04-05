@@ -4,7 +4,7 @@ Chocolatine is a lightweight python library designed to easily generate SQL requ
 
 # Why Chocolatine ?
 
-If you know Python programming langage but you are not at your ease with SQL (or you don't want to manage SQL requests by yourself), you can use Chocolatine to generate SQL some requests for you.
+If you know Python programming langage but you are not at your ease with SQL (or you don't want to manage SQL requests by yourself), you can use Chocolatine to generate some SQL requests for you.
 Of course, there are many other open source projects to do that, but honestly, they are more complex than most people expects from them (SQLAlchemy, Django ORM, etc...).
 
 # Examples
@@ -62,6 +62,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # Advanced functionnalities
 
+- Calls orders doesn't matter (Chocolatine automatically adjust the SQL requests clauses order for you)
 - Compact or extended SQL expressions
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
