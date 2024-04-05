@@ -1,5 +1,7 @@
 # chocolatine
 
+![Image](logo.jpg)
+
 Chocolatine is a lightweight python library designed to easily generate SQL request.
 
 # Why Chocolatine ?
@@ -48,7 +50,7 @@ HAVING COUNT(*) > 1 AND SUM(amount) > 5.00
 ORDER BY total_amount
 ```
 
-# SQL dialec
+# SQL dialect
 
 For now, Chocolatine is only designed to generate MySQL queries.
 It is not excluded that in the future it will be compatible with Sqlite3, SqlServer or postgreSQL
@@ -77,6 +79,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Create requests
 - Update requests
 - Delete requests
+- Pypi package (to install with pip install)
 
 # Tests
 
