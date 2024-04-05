@@ -1,3 +1,7 @@
+from typing import Any, Self
+
+from .utils import quote_expr
+from .expr import Expr
 from .condition import Condition
 from .operator import Operator
 from .ordering import Ordering
@@ -5,80 +9,121 @@ from .agg_function import AggFunction
 from .sql_function import SqlFunction
 
 
-class Col:
+class Col(Expr):
 
-    def __init__(self, name: str, new_name: str = None, agg_function: AggFunction = None, sql_function: SqlFunction = None, ordering: Ordering = None, ref_table: str = None):
-        if "." in name:
+    def __init__(
+            self,
+            name: str,
+            new_name: str = None,
+            agg_function: AggFunction = None,
+            sql_function: SqlFunction = None,
+            ordering: Ordering = None,
+            ref_table: str = None
+    ):
+        if "." in str(name):
             parts = name.split(".")
             if len(parts) != 2:
                 raise Exception("Unable to resolve the col name")
             (ref_table, name) = parts
-        self.name = name
-        self.new_name = new_name
-        self.ref_table = ref_table
-        self.agg_function = agg_function
-        self.sql_function = sql_function
-        self.ordering = ordering
+        self._name = name
+        self._new_name = new_name
+        self._ref_table = ref_table
+        self._agg_function = agg_function
+        self._sql_function = sql_function
+        self._ordering = ordering
+        self._concatenation = []
 
-    def __gt__(self, value):
+    def copy(self):
+        return Col(
+            name=self._name,
+            new_name=self._new_name,
+            agg_function=self._agg_function,
+            sql_function=self._sql_function,
+            ordering=self._ordering,
+            ref_table=self._ref_table
+        )
+
+    def __gt__(self, value: Any) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
 
-    def __eq__(self, value):
+    def __eq__(self, value: Any) -> Condition:
         return Condition(left_value=self, op=Operator.Equal, right_value=value)
 
-    def __ne__(self, value):
+    def __ne__(self, value: Any) -> Condition:
         return Condition(left_value=self, op=Operator.NotEqual, right_value=value)
 
-    def order(self, ordering: Ordering):
-        self.ordering = ordering
+    def __and__(self, value: Any) -> Self:
+        if not self._concatenation:
+            self._concatenation.append(self.copy())
+        self._concatenation.append(value)
         return self
 
-    def asc(self):
+    def __rand__(self, value: Any) -> Self:
+        return self.__and__(value)
+
+    def order(self, ordering: Ordering) -> Self:
+        self._ordering = ordering
+        return self
+
+    def asc(self) -> Self:
         return self.order(Ordering.Ascending)
 
-    def desc(self):
+    def desc(self) -> Self:
         return self.order(Ordering.Descending)
 
-    def alias(self, new_name: str):
-        self.new_name = new_name
+    def like(self, expr: str):
+        return Condition(self, Operator.Like, expr)
+
+    def isin(self, *expr):
+        return Condition(self, Operator.In, expr)
+
+    def upper(self) -> Self:
+        self._sql_function = SqlFunction.Upper
         return self
 
-    def aggregate(self, agg_function: AggFunction):
-        self.agg_function = agg_function
+    def lower(self) -> Self:
+        self._sql_function = SqlFunction.Lower
         return self
 
-    def sum(self):
-        self.agg_function = AggFunction.Sum
+    def alias(self, new_name: str) -> Self:
+        self._new_name = new_name
         return self
 
-    def count(self):
-        self.agg_function = AggFunction.Count
+    def aggregate(self, agg_function: AggFunction) -> Self:
+        self._agg_function = agg_function
         return self
 
-    def max(self):
-        self.agg_function = AggFunction.Max
+    def sum(self) -> Self:
+        self._agg_function = AggFunction.Sum
         return self
 
-    def min(self):
-        self.agg_function = AggFunction.Min
+    def count(self) -> Self:
+        self._agg_function = AggFunction.Count
         return self
 
-    def average(self):
-        self.agg_function = AggFunction.Average
+    def max(self) -> Self:
+        self._agg_function = AggFunction.Max
         return self
 
-    def build(self):
-        expr = f"{(self.ref_table + ".") if self.ref_table else ""}{self.name}"
-        if self.agg_function:
-            expr = f"{self.agg_function.value}({expr})"
-        if self.sql_function:
-            expr = f"{self.sql_function.value}({expr})"
-        if self.new_name:
-            expr += f" AS {self.new_name}"
+    def min(self) -> Self:
+        self._agg_function = AggFunction.Min
+        return self
+
+    def average(self) -> Self:
+        self._agg_function = AggFunction.Average
+        return self
+
+    def _build_concat(self) -> str:
+        return f"CONCAT({", ".join(quote_expr(x) if type(x) is str else str(x) for x in self._concatenation)})"
+
+    def build(self) -> str:
+        expr = f"{(self._ref_table + ".") if self._ref_table else ""}{self._name}"
+        if self._concatenation:
+            expr = self._build_concat()
+        if self._agg_function:
+            expr = f"{self._agg_function.value}({expr})"
+        if self._sql_function:
+            expr = f"{self._sql_function.value}({expr})"
+        if self._new_name:
+            expr += f" AS {self._new_name}"
         return expr
-
-    def __str__(self):
-        return self.build()
-
-    def __expr__(self):
-        return self.build()
