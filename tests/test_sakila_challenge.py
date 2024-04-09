@@ -1,4 +1,4 @@
-from chocolatine import Request, Col
+from chocolatine import Request, Col, Table, JoinType
 
 
 def test_request_1a():
@@ -25,7 +25,7 @@ FROM actor\
 
 def test_request_2a():
     """ You need to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." What is 
-        one query would you use to obtain this information? """
+        one query would you use to obtain this information ? """
     assert Request(compact=False) \
         .table("actor") \
         .select("actor_id", "first_name", "last_name") \
@@ -36,24 +36,49 @@ FROM actor
 WHERE (first_name = 'Joe')\
 """
 
-# 2b. Find all actors whose last name contain the letters `GEN`.
 
-#   SELECT * FROM actor
-#   WHERE last_name LIKE '%GEN%';
+def test_request_2b():
+    """ Find all actors whose last name contain the letters `GEN` """
+    assert Request(compact=False) \
+        .table('actor')\
+        .filter(Col("last_name").like('%GEN%')) \
+        .build() == """\
+SELECT *
+FROM actor
+WHERE (last_name LIKE '%GEN%')\
+"""
+# --'WHERE last_name LIKE '%GEN%'\
 
-# 2c. Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that 
-# order:
+# error
 
-#   SELECT last_name, first_name
-#   FROM actor
-#   WHERE last_name LIKE '%LI%'
-#   ORDER BY last_name, first_name;
 
-# 2d. Using `IN`, display the `country_id` and `country` columns of the following countries: Afghanistan, Bangladesh, and China:
+def test_request_2c():
+    """ Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that order:"""
+    assert Request(compact=False) \
+        .table("actor")\
+        .select("last_name", "first_name")\
+        .filter(Col("last_name").like(r'%LI%'))\
+        .build() == """\
+SELECT last_name, first_name
+FROM actor
+WHERE (last_name LIKE '%LI%')\
+"""
 
-#   SELECT country_id, country
-#   FROM country
-#   WHERE country IN ('Afghanistan', 'Bangladesh', 'China');
+
+def test_request_2d():
+    """ Using `IN`, display the `country_id` and `country` columns of the following countries Afghanistan, Bangladesh, and China """
+    assert Request(compact=False) \
+        .table('country') \
+        .select('country_id', 'country') \
+        .filter(Col('country').isin('Afghanistan', 'Bangladesh', 'China')) \
+        .build() == """\
+SELECT country_id, country
+FROM country
+WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))\
+"""
+# error
+# problème de paranthèse
+
 
 # 3a. Add a `middle_name` column to the table `actor`. Position it between `first_name` and `last_name`. Hint: you will need to
 # specify the data type.
@@ -71,19 +96,33 @@ WHERE (first_name = 'Joe')\
 #   ALTER TABLE actor
 # 	DROP COLUMN middle_name;
 
-# 4a. List the last names of actors, as well as how many actors have that last name.
+def test_request_4a():
+    """ List the last names of actors, as well as how many actors have that last name """
+    assert Request(compact=False) \
+        .table("actor") \
+        .select(Col('last_name'), Col("*").count().alias('count')) \
+        .group_by("last_name") \
+        .build() == """\
+SELECT last_name, COUNT(*) AS count
+FROM actor
+GROUP BY last_name\
+"""
 
-#   SELECT last_name, COUNT(*) AS 'count'
-#   FROM actor
-#   GROUP BY last_name
 
-# 4b. List last names of actors and the number of actors who have that last name, but only for names that are shared by at least
-# two actors.
-  
-#   SELECT last_name, COUNT(*) AS 'count' 
-#   FROM actor 
-#   GROUP BY last_name 
-#   HAVING COUNT(*) > 1;
+def test_request_4b():
+    """ List last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors """
+    assert Request(compact=False) \
+        .table("actor") \
+        .select(Col('last_name'), Col("*").count().alias('count')) \
+        .group_by("last_name")\
+        .filter(Col('*').count() > 1)\
+        .build() == """\
+SELECT last_name, COUNT(*) AS count
+FROM actor
+GROUP BY last_name
+HAVING (COUNT(*) > 1)\
+"""
+
 
 # 4c. Oh, no! The actor `HARPO WILLIAMS` was accidentally entered in the `actor` table as `GROUCHO WILLIAMS`, the name of Harpo's
 # second cousin's husbands yoga teacher. Write a query to fix the record.
@@ -109,37 +148,19 @@ WHERE (first_name = 'Joe')\
 
 #   SHOW CREATE TABLE address;
 
-# 6a. Use `JOIN` to display the first and last names, as well as the address, of each staff member. Use the tables `staff` and
-# `address`:
+def test_request_6a():
+    """Use `JOIN` to display the first and last names, as well as the address, of each staff member. Use the tables `staff` and `address`:"""
+    assert Request(compact=False)\
+        .table("staff:s")\
+        .select("s.first_name", "s.last_name", "a.address")\
+        .join(Table("address:a"), Col("s.address_id") == Col("a.address_id"), JoinType.Inner)\
+        .build() == """\
+SELECT s.first_name, s.last_name, a.address
+FROM staff AS s
+INNER JOIN address AS a
+ON (s.address_id = a.address_id)\
+"""
 
-#   SELECT s.first_name, s.last_name, a.address
-#   FROM staff s
-#   INNER JOIN address a
-#   ON (s.address_id = a.address_id);
-
-# 6b. Use `JOIN` to display the total amount rung up by each staff member in August of 2005. Use tables `staff` and `payment`.
-
-#   SELECT s.first_name, s.last_name, SUM(p.amount)
-#   FROM staff s
-#   INNER JOIN payment p 
-#   ON (s.staff_id = p.staff_id)
-#   WHERE MONTH(p.payment_date) = 08 AND YEAR(p.payment_date) = 2005
-#   GROUP BY s.staff_id;
-
-# 6c. List each film and the number of actors who are listed for that film. Use tables `film_actor` and `film`. Use inner join.
-
-#   SELECT f.title, COUNT(a.actor_id) AS 'Number of Actors'
-#   FROM film f
-#   INNER join film_actor a 
-#   ON (f.film_id = a.film_id)
-#   GROUP BY f.title
-#   ORDER BY 'Number of Actors' DESC;
-
-# 6d. How many copies of the film `Hunchback Impossible` exist in the inventory system?
-
-#   SELECT title, COUNT(inventory_id) AS 'Number of copies'
-#   FROM film
-#   INNER JOIN inventory
 #   USING (film_id)
 #   WHERE title = 'Hunchback Impossible'
 #   GROUP BY title;
