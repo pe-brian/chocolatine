@@ -1,5 +1,7 @@
 from typing import Any, Self
 
+from typeguard import typechecked
+
 from .utils import quote_expr
 from .expr import Expr
 from .condition import Condition
@@ -9,24 +11,25 @@ from .agg_function import AggFunction
 from .sql_function import SqlFunction
 
 
+@typechecked
 class Col(Expr):
 
     def __init__(
             self,
             name: str,
-            alias: str = None,
-            agg_function: AggFunction = None,
-            sql_function: SqlFunction = None,
-            ordering: Ordering = None,
-            ref: str = None
-    ):
+            alias: str | None = None,
+            agg_function: AggFunction | None = None,
+            sql_function: SqlFunction | None = None,
+            ordering: Ordering | None = None,
+            ref: str | None = None
+    ) -> None:
         super().__init__(name=name, alias=alias, ref=ref)
         self._agg_function = agg_function
         self._sql_function = sql_function
         self._ordering = ordering
         self._concatenation = []
 
-    def copy(self):
+    def copy(self) -> Self:
         return Col(
             name=self._name,
             alias=self._alias,
@@ -67,7 +70,7 @@ class Col(Expr):
     def like(self, expr: str):
         return Condition(self, Operator.Like, expr)
 
-    def isin(self, *expr):
+    def isin(self, *expr: str):
         return Condition(self, Operator.In, expr)
 
     def upper(self) -> Self:
@@ -116,5 +119,5 @@ class Col(Expr):
             return f"{self._sql_function.value}({"{}"})"
         return "{}"
 
-    def _build_full_name(self):
+    def _build_full_name(self) -> str:
         return self._build_function().format(super()._build_full_name() if not self._concatenation else self._build_concat())

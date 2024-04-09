@@ -1,4 +1,6 @@
-from typing import Self
+from typing import List, Self
+
+from typeguard import typechecked
 
 from .agg_function import AggFunction
 from .expr import Expr
@@ -8,12 +10,13 @@ from .col import Col
 from .table import Table
 
 
+@typechecked
 class Request(Expr):
 
     def __init__(
             self,
             compact: bool = True
-    ):
+    ) -> None:
         self._table = None
         self._selected_cols = []
         self._unique = False
@@ -23,8 +26,8 @@ class Request(Expr):
         self._joins = []
         self._compact = compact
 
-    def table(self, name: str | Table, alias: str = None) -> Self:
-        self._table = Table(name, alias) if type(name) is str else name
+    def table(self, name: str | Table, alias: str | None = None) -> Self:
+        self._table = Table(name=name, alias=alias) if type(name) is str else name
         return self
 
     def select(self, *selected_cols: str | Col) -> Self:
@@ -35,7 +38,7 @@ class Request(Expr):
         self._unique = True
         return self
 
-    def filter(self, condition) -> Self:
+    def filter(self, condition: Condition) -> Self:
         if any(x in condition.build() for x in set(e.value for e in AggFunction)):
             self._having_condition = condition
         else:
@@ -46,7 +49,7 @@ class Request(Expr):
         self._group_by_cols = cols_names
         return self
 
-    def join(self, table: str | Table, condition: Condition, joinType: JoinType = JoinType.Inner) -> Self:
+    def join(self, table: str | Table, condition: Condition, joinType: JoinType | None = JoinType.Inner) -> Self:
         self._joins.append((table if type(table) is Table else Table(table), joinType, condition))
         return self
 
@@ -75,7 +78,7 @@ class Request(Expr):
                 ordering.append(f"{col._name} {col._ordering.value}")
         return f"ORDER BY {", ".join(ordering)}" if ordering else ""
 
-    def _build_join(self) -> str:
+    def _build_join(self) -> List[str]:
         exprs = []
         for table, join_type, condition in self._joins:
             exprs.append(f"{join_type.value} JOIN {table}")

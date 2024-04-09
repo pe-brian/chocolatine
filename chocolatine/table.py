@@ -1,12 +1,15 @@
+from typeguard import typechecked
+
 from .expr import Expr
 
 
+@typechecked
 class Table(Expr):
 
     def __init__(
             self,
             name: str,
-            schema: str = None,
-            alias: str = None
+            schema: str | None = None,
+            alias: str | None = None
     ):
         super().__init__(name=name, alias=alias, ref=schema)
