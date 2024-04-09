@@ -1,5 +1,14 @@
 from chocolatine import Col, Condition, Operator, AggFunction
+from chocolatine.expr import Expr
 from chocolatine.ordering import Ordering
+
+
+def test_expr():
+    assert Expr(name="name", alias="alias", ref="table").build() == "table.name AS alias"
+    assert Expr(name="table.name@alias").build() == "table.name AS alias"
+    assert Expr(name="table.name:alias").build() == "table.name AS alias"
+
+###
 
 
 def test_condition_op_eq():
@@ -45,9 +54,9 @@ def test_condition_op_in():
 ###
 
 def test_col_init():
-    col = Col(name="amount", new_name="new_amount", agg_function=AggFunction.Count, ordering=Ordering.Ascending)
+    col = Col(name="amount", alias="new_amount", agg_function=AggFunction.Count, ordering=Ordering.Ascending)
     assert col._name == "amount"
-    assert col._new_name == "new_amount"
+    assert col._alias == "new_amount"
     assert col._agg_function == AggFunction.Count
     assert col._ordering == Ordering.Ascending
 
@@ -63,14 +72,14 @@ def test_col_build():
 def test_col_build_immutable():
     col = Col(
         name="amount",
-        new_name="total_amount",
-        ref_table="payment",
+        alias="total_amount",
+        ref="payment",
         agg_function=AggFunction.Sum
     )
     col.build()
     assert col._name == "amount"
-    assert col._new_name == "total_amount"
-    assert col._ref_table == "payment"
+    assert col._alias == "total_amount"
+    assert col._ref == "payment"
     assert col._agg_function == AggFunction.Sum
     assert col._sql_function is None
     assert col._ordering is None

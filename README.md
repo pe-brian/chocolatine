@@ -13,11 +13,11 @@ Of course, there are many other open source projects to do that, but honestly, t
 
 __Concatenation & filtering__ :
 ```python
-from chocolatine import Request, Col
+from chocolatine import Request, Col as _
 
 req = Request().table("customer")\
-               .select("customer_id", (Col("first_name") & ' ' & Col("last_name")).upper().alias("name"))\
-               .filter(Col("first_name").like("%E"))
+               .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias("name"))\
+               .filter(_("first_name").like("%E"))
 print(req)
 ```
 Output :
@@ -29,6 +29,7 @@ WHERE first_name LIKE '%E'
 __Group by, aggregation & filtering__ :
 ```python
 from chocolatine import Request, sum
+from chocolatine.col import Col as _
 
 req = Request().table("payment")\
                .select(
@@ -37,8 +38,8 @@ req = Request().table("payment")\
                     sum("amount").alias("total_amount").order()\
                )\
                .group_by("customer_id")\
-               .filter(count() > 1 & sum("amount") > 5.00)\  # Having clause condition
-               .filter(Col("customer_id") != 3)  # Where clause condition
+               .filter(count() > 1 & sum("amount") > 5.00)\
+               .filter(_("customer_id") != 3)
 print(req)
 ```
 Output :
@@ -48,6 +49,25 @@ WHERE customer_id != 3
 GROUP BY customer_id
 HAVING COUNT(*) > 1 AND SUM(amount) > 5.00
 ORDER BY total_amount
+```
+
+__Join__ :
+```python
+from chocolatine import Request
+from chocolatine.col import Col as _
+
+req = Request().table("film:f")\
+               .select("f.title", _("a.first_name") & " " & _("a.last_name"))\
+               .join("film_actor:fa", _("fa.film_id") == _("f.film_id"))\
+               .join("actor:a", _("a.actor_id") == _("fa.actor_id"))\
+               .build()
+print(req)
+```
+Output :
+```SQL
+SELECT f.title, CONCAT(a.first_name, ' ', a.last_name) FROM film AS f
+INNER JOIN film_actor AS fa ON (fa.film_id = f.film_id)
+INNER JOIN actor AS a ON (a.actor_id = fa.actor_i)
 ```
 
 # SQL dialect
@@ -69,6 +89,8 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # Advanced functionnalities
 
+- Use of : or @ in col or table name directly for alias
+- Expr value checking to prevent SQL injection attacks
 - Calls orders doesn't matter (Chocolatine automatically adjust the SQL requests clauses order for you)
 - Compact or extended SQL expressions
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)
@@ -76,6 +98,10 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # To-do
 
+- Dynamic type checking
+- Implement Case-When
+- Auto ambiguity removing on select columns names (after a join clause for example)
+- Automatic join conditions on same name columns for both tables
 - Create requests
 - Update requests
 - Delete requests

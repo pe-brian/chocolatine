@@ -14,20 +14,13 @@ class Col(Expr):
     def __init__(
             self,
             name: str,
-            new_name: str = None,
+            alias: str = None,
             agg_function: AggFunction = None,
             sql_function: SqlFunction = None,
             ordering: Ordering = None,
-            ref_table: str = None
+            ref: str = None
     ):
-        if "." in str(name):
-            parts = name.split(".")
-            if len(parts) != 2:
-                raise Exception("Unable to resolve the col name")
-            (ref_table, name) = parts
-        self._name = name
-        self._new_name = new_name
-        self._ref_table = ref_table
+        super().__init__(name=name, alias=alias, ref=ref)
         self._agg_function = agg_function
         self._sql_function = sql_function
         self._ordering = ordering
@@ -36,11 +29,11 @@ class Col(Expr):
     def copy(self):
         return Col(
             name=self._name,
-            new_name=self._new_name,
+            alias=self._alias,
             agg_function=self._agg_function,
             sql_function=self._sql_function,
             ordering=self._ordering,
-            ref_table=self._ref_table
+            ref=self._ref
         )
 
     def __gt__(self, value: Any) -> Condition:
@@ -85,8 +78,8 @@ class Col(Expr):
         self._sql_function = SqlFunction.Lower
         return self
 
-    def alias(self, new_name: str) -> Self:
-        self._new_name = new_name
+    def alias(self, name: str) -> Self:
+        self._alias = name
         return self
 
     def aggregate(self, agg_function: AggFunction) -> Self:
@@ -116,14 +109,12 @@ class Col(Expr):
     def _build_concat(self) -> str:
         return f"CONCAT({", ".join(quote_expr(x) if type(x) is str else str(x) for x in self._concatenation)})"
 
-    def build(self) -> str:
-        expr = f"{(self._ref_table + ".") if self._ref_table else ""}{self._name}"
-        if self._concatenation:
-            expr = self._build_concat()
+    def _build_function(self) -> str:
         if self._agg_function:
-            expr = f"{self._agg_function.value}({expr})"
+            return f"{self._agg_function.value}({"{}"})"
         if self._sql_function:
-            expr = f"{self._sql_function.value}({expr})"
-        if self._new_name:
-            expr += f" AS {self._new_name}"
-        return expr
+            return f"{self._sql_function.value}({"{}"})"
+        return "{}"
+
+    def _build_full_name(self):
+        return self._build_function().format(super()._build_full_name() if not self._concatenation else self._build_concat())
