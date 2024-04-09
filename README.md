@@ -90,10 +90,11 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Dynamic type checking
 - Use of : or @ in col or table name directly for alias
 - Expr value checking to prevent SQL injection attacks
-- Calls orders doesn't matter (Chocolatine automatically adjust the SQL requests clauses order for you)
+- Calls orders doesn't matter (except for join clauses)
 - Compact or extended SQL expressions
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
+- Automatic join condition on same name columns for both tables
 
 # To-do
 
@@ -101,7 +102,6 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Possibility to disable dynamic type checking (for performance concerns)
 - Implement Case-When
 - Auto ambiguity removing on select columns names (after a join clause for example)
-- Automatic join conditions on same name columns for both tables
 - Create requests
 - Update requests
 - Delete requests

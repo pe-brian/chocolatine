@@ -1,6 +1,8 @@
-from typing import List, Self
+from typing import Iterable, List, Self
 
 from typeguard import typechecked
+
+from chocolatine.operator import Operator
 
 from .agg_function import AggFunction
 from .expr import Expr
@@ -25,6 +27,7 @@ class Request(Expr):
         self._having_condition = []
         self._joins = []
         self._compact = compact
+        self._last_joined_table = None
 
     def table(self, name: str | Table, alias: str | None = None) -> Self:
         """ Set the table name """
@@ -42,7 +45,7 @@ class Request(Expr):
         return self
 
     def filter(self, condition: Condition) -> Self:
-        """ Filter the rows according to the condition """
+        """ Filter the rows according to the given condition """
         if any(x in condition.build() for x in set(e.value for e in AggFunction)):
             self._having_condition = condition
         else:
@@ -54,9 +57,25 @@ class Request(Expr):
         self._group_by_cols = cols_names
         return self
 
-    def join(self, table: str | Table, condition: Condition, joinType: JoinType | None = JoinType.Inner) -> Self:
+    def join(self, table: str | Table, condition: Condition | str | Iterable[str], joinType: JoinType | None = JoinType.Inner) -> Self:
         """ Join two tables according to the given condition """
+        def _gen_condition(table, other, condition):
+            return Col(f"{table._alias if type(table) is Table else Table(table)._alias}.{condition}") == \
+                    Col(f"{(other._alias if hasattr(other, "_alias") else None) or self._table._alias}.{condition}")
+        if type(condition) is not Condition:
+            if type(condition) is str:
+                condition = _gen_condition(table, self._last_joined_table or self._table, condition)
+            else:
+                if len(condition) < 2:
+                    raise ValueError("More conditions are expected")
+                for k in range(len(condition)):
+                    if k == 0:
+                        c = _gen_condition(table, self._table, condition[0])
+                    elif k > 0:
+                        c = Condition(left_value=_gen_condition(table, self._table, condition[k]), op=Operator.And, right_value=c)
+                condition = c
         self._joins.append((table if type(table) is Table else Table(table), joinType, condition))
+        self._last_joined_table = table if type(table) is Table else Table(table)
         return self
 
     def _build_select(self) -> str:
