@@ -23,12 +23,12 @@ class Request(Expr):
         self._joins = []
         self._compact = compact
 
-    def table(self, table_name: str, table_new_name: str = None) -> Self:
-        self._table = Table(table_name, table_new_name)
+    def table(self, name: str | Table, alias: str = None) -> Self:
+        self._table = Table(name, alias) if type(name) is str else name
         return self
 
-    def select(self, *selected_cols) -> Self:
-        self._selected_cols = selected_cols
+    def select(self, *selected_cols: str | Col) -> Self:
+        self._selected_cols = [col if type(col) is Col else Col(col) for col in selected_cols]
         return self
 
     def distinct(self) -> Self:
@@ -42,12 +42,12 @@ class Request(Expr):
             self._where_condition = condition
         return self
 
-    def group_by(self, *cols) -> Self:
-        self._group_by_cols = cols
+    def group_by(self, *cols_names: str) -> Self:
+        self._group_by_cols = cols_names
         return self
 
-    def join(self, table: str, joinType: JoinType, condition: Condition) -> Self:
-        self._joins.append((table, joinType, condition))
+    def join(self, table: str | Table, condition: Condition, joinType: JoinType = JoinType.Inner) -> Self:
+        self._joins.append((table if type(table) is Table else Table(table), joinType, condition))
         return self
 
     def _build_select(self) -> str:
