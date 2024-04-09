@@ -1,5 +1,4 @@
-from chocolatine import Request, Col, Table, JoinType, Operator, Condition
-from chocolatine.shortcut import count
+from chocolatine import Request, Col, Table, JoinType
 
 
 def test_request_1a():
@@ -26,7 +25,7 @@ FROM actor\
 
 def test_request_2a():
     """ You need to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." What is 
-        one query would you use to obtain this information? """
+        one query would you use to obtain this information ? """
     assert Request(compact=False) \
         .table("actor") \
         .select("actor_id", "first_name", "last_name") \
@@ -37,9 +36,10 @@ FROM actor
 WHERE (first_name = 'Joe')\
 """
 
+
 def test_request_2b():
-   """ Find all actors whose last name contain the letters `GEN`."""
-   assert Request(compact=False) \
+    """ Find all actors whose last name contain the letters `GEN` """
+    assert Request(compact=False) \
         .table('actor')\
         .filter(Col("last_name").like('%GEN%')) \
         .build() == """\
@@ -53,12 +53,10 @@ WHERE (last_name LIKE '%GEN%')\
 
 
 def test_request_2c():
-    """Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that 
-        order:"""
-        
+    """ Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that order:"""
     assert Request(compact=False) \
         .table("actor")\
-        .select("last_name","first_name")\
+        .select("last_name", "first_name")\
         .filter(Col("last_name").like(r'%LI%'))\
         .build() == """\
 SELECT last_name, first_name
@@ -68,8 +66,7 @@ WHERE (last_name LIKE '%LI%')\
 
 
 def test_request_2d():
-    """ Using `IN`, display the `country_id` and `country` columns of the following countries 
-        Afghanistan, Bangladesh, and China """
+    """ Using `IN`, display the `country_id` and `country` columns of the following countries Afghanistan, Bangladesh, and China """
     assert Request(compact=False) \
         .table('country') \
         .select('country_id', 'country') \
@@ -100,7 +97,7 @@ WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))\
 # 	DROP COLUMN middle_name;
 
 def test_request_4a():
-    """List the last names of actors, as well as how many actors have that last name."""
+    """ List the last names of actors, as well as how many actors have that last name """
     assert Request(compact=False) \
         .table("actor") \
         .select(Col('last_name'), Col("*").count().alias('count')) \
@@ -111,11 +108,10 @@ FROM actor
 GROUP BY last_name\
 """
 
-#   
+
 def test_request_4b():
-        """4b. List last names of actors and the number of actors who have that last name, but only for names that are shared by at least
-        two actors."""
-        assert Request(compact=False) \
+    """ List last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors """
+    assert Request(compact=False) \
         .table("actor") \
         .select(Col('last_name'), Col("*").count().alias('count')) \
         .group_by("last_name")\
@@ -153,12 +149,11 @@ HAVING (COUNT(*) > 1)\
 #   SHOW CREATE TABLE address;
 
 def test_request_6a():
-    """a. Use `JOIN` to display the first and last names, as well as the address, of each staff member. Use the tables `staff` and
-    `address`:"""
+    """Use `JOIN` to display the first and last names, as well as the address, of each staff member. Use the tables `staff` and `address`:"""
     assert Request(compact=False)\
-        .table("staff", "s")\
-        .select("s.first_name, s.last_name, a.address")\
-        .join(Table("address", "a"), JoinType.Inner, Col("address_id") == Col("address_id"))\
+        .table("staff:s")\
+        .select("s.first_name", "s.last_name", "a.address")\
+        .join(Table("address:a"), Col("s.address_id") == Col("a.address_id"), JoinType.Inner)\
         .build() == """\
 SELECT s.first_name, s.last_name, a.address
 FROM staff AS s
@@ -166,10 +161,6 @@ INNER JOIN address AS a
 ON (s.address_id = a.address_id)\
 """
 
-
-
-#   
-#   
 #   USING (film_id)
 #   WHERE title = 'Hunchback Impossible'
 #   GROUP BY title;

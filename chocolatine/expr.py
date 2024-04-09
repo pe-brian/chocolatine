@@ -8,13 +8,20 @@ from typeguard import typechecked
 class Expr:
 
     def __init__(self, name: str, alias: str | None = None, ref: str | None = None) -> None:
-        match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)
-        if not match:
-            raise ValueError("Forbidden characters in expr")
-        r, n, a = match.groups()
-        self._name = n
-        self._alias = alias or (a[1:] if a else None)
-        self._ref = ref or (r[:-1] if r else None)
+        if name != "*":
+            match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)
+            if not match:
+                raise ValueError(f"Forbidden characters in expr '{name}'")
+            r, n, a = match.groups()
+            self._name = n
+            self._alias = alias or (a[1:] if a else None)
+            self._ref = ref or (r[:-1] if r else None)
+        else:
+            self._name = name
+            self._alias = alias
+            if ref:
+                raise ValueError("Ref parameter can't be used with when name is *")
+            self._ref = ref
 
     def alias(self, name: str) -> Self:
         self._alias = name
