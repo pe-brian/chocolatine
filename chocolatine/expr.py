@@ -6,7 +6,7 @@ from typeguard import typechecked
 
 @typechecked
 class Expr:
-
+    """ Name with reference and alias """
     def __init__(self, name: str, alias: str | None = None, ref: str | None = None) -> None:
         if name != "*":
             match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)
@@ -24,6 +24,7 @@ class Expr:
             self._ref = ref
 
     def alias(self, name: str) -> Self:
+        """ Set an alias """
         self._alias = name
         return self
 
@@ -46,4 +47,5 @@ class Expr:
         return (self._ref + ".") if self._ref else ""
 
     def build(self) -> str:
+        """ Build the expression """
         return f"{self._build_full_name()}{self._build_alias()}"

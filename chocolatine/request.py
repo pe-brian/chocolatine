@@ -12,7 +12,7 @@ from .table import Table
 
 @typechecked
 class Request(Expr):
-
+    """ Handler to generate a SQL request """
     def __init__(
             self,
             compact: bool = True
@@ -27,18 +27,22 @@ class Request(Expr):
         self._compact = compact
 
     def table(self, name: str | Table, alias: str | None = None) -> Self:
+        """ Set the table name """
         self._table = Table(name=name, alias=alias) if type(name) is str else name
         return self
 
     def select(self, *selected_cols: str | Col) -> Self:
+        """ Set the selected cols """
         self._selected_cols = [col if type(col) is Col else Col(col) for col in selected_cols]
         return self
 
     def distinct(self) -> Self:
+        """ Filter the rows to remove duplicates (by selected columns)"""
         self._unique = True
         return self
 
     def filter(self, condition: Condition) -> Self:
+        """ Filter the rows according to the condition """
         if any(x in condition.build() for x in set(e.value for e in AggFunction)):
             self._having_condition = condition
         else:
@@ -46,10 +50,12 @@ class Request(Expr):
         return self
 
     def group_by(self, *cols_names: str) -> Self:
+        """ Group the rows of the specified columns """
         self._group_by_cols = cols_names
         return self
 
     def join(self, table: str | Table, condition: Condition, joinType: JoinType | None = JoinType.Inner) -> Self:
+        """ Join two tables according to the given condition """
         self._joins.append((table if type(table) is Table else Table(table), joinType, condition))
         return self
 
@@ -86,6 +92,7 @@ class Request(Expr):
         return exprs
 
     def build(self) -> str:
+        """ Build the query """
         return f"{" " if self._compact else "\n"}".join(
             part for part in [
                 self._build_select(),
