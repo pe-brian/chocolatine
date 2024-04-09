@@ -28,8 +28,7 @@ WHERE first_name LIKE '%E'
 
 __Group by, aggregation & filtering__ :
 ```python
-from chocolatine import Request, sum
-from chocolatine.col import Col as _
+from chocolatine import Request, sum, Col as _
 
 req = Request().table("payment")\
                .select(
@@ -53,8 +52,7 @@ ORDER BY total_amount
 
 __Join__ :
 ```python
-from chocolatine import Request
-from chocolatine.col import Col as _
+from chocolatine import Request, Col as _
 
 req = Request().table("film:f")\
                .select("f.title", _("a.first_name") & " " & _("a.last_name"))\
@@ -89,6 +87,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # Advanced functionnalities
 
+- Dynamic type checking
 - Use of : or @ in col or table name directly for alias
 - Expr value checking to prevent SQL injection attacks
 - Calls orders doesn't matter (Chocolatine automatically adjust the SQL requests clauses order for you)
@@ -98,7 +97,8 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # To-do
 
-- Dynamic type checking
+- Check conditions values
+- Possibility to disable dynamic type checking (for performance concerns)
 - Implement Case-When
 - Auto ambiguity removing on select columns names (after a join clause for example)
 - Automatic join conditions on same name columns for both tables
