@@ -28,6 +28,7 @@ class Request(Expr):
         self._joins = []
         self._compact = compact
         self._last_joined_table = None
+        self._joined_cols = {}
 
     def table(self, name: str | Table, alias: str | None = None) -> Self:
         """ Set the table name """
@@ -36,7 +37,7 @@ class Request(Expr):
 
     def select(self, *selected_cols: str | Col) -> Self:
         """ Set the selected cols """
-        self._selected_cols = [col if type(col) is Col else Col(col) for col in selected_cols]
+        self._selected_cols = [(col if type(col) is Col else Col(col)) for col in selected_cols]
         return self
 
     def distinct(self) -> Self:
@@ -59,9 +60,19 @@ class Request(Expr):
 
     def join(self, table: str | Table, condition: Condition | str | Iterable[str], joinType: JoinType | None = JoinType.Inner) -> Self:
         """ Join two tables according to the given condition """
+        if type(table) is str:
+            table = Table(table)
+        if not table._alias:
+            table.alias()
+        if not self._table._alias:
+            self._table.alias()
+
         def _gen_condition(table, other, condition):
-            return Col(f"{table._alias if type(table) is Table else Table(table)._alias}.{condition}") == \
-                    Col(f"{(other._alias if hasattr(other, "_alias") else None) or self._table._alias}.{condition}")
+            left_table_alias = table._alias if type(table) is Table else Table(table)._alias
+            right_table_alias = (other._alias if hasattr(other, "_alias") else None) or self._table._alias
+            self._joined_cols[condition] = (left_table_alias, right_table_alias)
+            return Col(f"{left_table_alias}.{condition}") == Col(f"{right_table_alias}.{condition}")
+
         if type(condition) is not Condition:
             if type(condition) is str:
                 condition = _gen_condition(table, self._last_joined_table or self._table, condition)
@@ -79,8 +90,12 @@ class Request(Expr):
         return self
 
     def _build_select(self) -> str:
+        def _remove_col_ambiguity(col):
+            if col._name in self._joined_cols:
+                col._ref = self._joined_cols[col._name][0]
+            return col
         expr = "SELECT "
-        cols = ", ".join(list(col if type(col) is str else col.build() for col in self._selected_cols)) if self._selected_cols else "*"
+        cols = ", ".join(list(_remove_col_ambiguity(col).build() for col in self._selected_cols)) if self._selected_cols else "*"
         expr += f"DISTINCT({cols})" if self._unique else cols
         return expr
 

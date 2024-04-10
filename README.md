@@ -54,19 +54,24 @@ __Join__ :
 ```python
 from chocolatine import Request, Col as _
 
-req = Request().table("film:f")\
-               .select("f.title", _("a.first_name") & " " & _("a.last_name"))\
-               .join("film_actor:fa", _("fa.film_id") == _("f.film_id"))\
-               .join("actor:a", _("a.actor_id") == _("fa.actor_id"))\
+req = Request().table("film")\
+               .select("title", "film_id", _("first_name") & " " & _("last_name"))\
+               .join("film_actor", "film_id")\
+               .join("actor", "actor_id")\
                .build()
 print(req)
 ```
 Output :
 ```SQL
-SELECT f.title, CONCAT(a.first_name, ' ', a.last_name) FROM film AS f
-INNER JOIN film_actor AS fa ON (fa.film_id = f.film_id)
-INNER JOIN actor AS a ON (a.actor_id = fa.actor_i)
+SELECT title, jcjqtxnn.film_id, CONCAT(first_name, ' ', last_name)
+FROM film AS oetjfebo
+INNER JOIN film_actor AS jcjqtxnn
+ON (jcjqtxnn.film_id = oetjfebo.film_id)
+INNER JOIN actor AS wcgbrway
+ON (wcgbrway.actor_id = jcjqtxnn.actor_id)
 ```
+
+_Note : Random aliases have been used to remove ambiguity on joins clauses. You can always define your own aliases instead._
 
 # SQL dialect
 
@@ -95,6 +100,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
 - Automatic join condition on same name columns for both tables
+- Auto-alias on join clause if needed
 
 # To-do
 
@@ -106,6 +112,9 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Update requests
 - Delete requests
 - Pypi package (to install with pip install)
+- SQLServer compatibility
+- PostGreSQL compatibility
+- SQLite3 compatibility
 
 # Tests
 

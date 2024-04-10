@@ -3,6 +3,8 @@ from typing import Self
 
 from typeguard import typechecked
 
+from chocolatine.utils import gen_random_string
+
 
 @typechecked
 class Expr:
@@ -23,9 +25,9 @@ class Expr:
                 raise ValueError("Ref parameter can't be used with when name is *")
             self._ref = ref
 
-    def alias(self, name: str) -> Self:
+    def alias(self, name: str | None = None) -> Self:
         """ Set an alias """
-        self._alias = name
+        self._alias = name or gen_random_string(8)
         return self
 
     def __str__(self) -> str:
