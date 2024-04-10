@@ -78,7 +78,9 @@ def test_col_concat():
 
 def test_col_like():
     assert _("fruit").like("ap%").build() == "(fruit LIKE 'ap%')"
+    assert (_("fruit") >> "ap%").build() == "(fruit LIKE 'ap%')"
 
 
 def test_col_in():
     assert _("fruit").isin("banana", "apple", "strawberry").build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
+    assert (_("fruit") << ("banana", "apple", "strawberry")).build() == "(fruit IN ('banana', 'apple', 'strawberry'))"

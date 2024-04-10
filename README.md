@@ -103,10 +103,10 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - \>: or <: in column alias
 - \>\> operator to perform a "like" condition on a column
 - << operator to perform a "in" condition on a column
+- Limit clause
 
 # To-do
 
-- Limit clause
 - Check conditions values
 - Concat shortcut function
 - Possibility to disable dynamic type checking (for performance concerns)

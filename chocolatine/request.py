@@ -17,7 +17,8 @@ class Request(Expr):
     """ Handler to generate a SQL request """
     def __init__(
             self,
-            compact: bool = True
+            compact: bool = True,
+            limit_to: int | None = None
     ) -> None:
         self._table = None
         self._selected_cols = []
@@ -29,6 +30,7 @@ class Request(Expr):
         self._compact = compact
         self._last_joined_table = None
         self._joined_cols = {}
+        self._limit = limit_to
 
     def table(self, name: str | Table, alias: str | None = None) -> Self:
         """ Set the table name """
@@ -43,6 +45,11 @@ class Request(Expr):
     def distinct(self) -> Self:
         """ Filter the rows to remove duplicates (by selected columns)"""
         self._unique = True
+        return self
+
+    def head(self, length: int = 1) -> Self:
+        """ Filter on the first N rows """
+        self._limit = length
         return self
 
     def filter(self, condition: Condition) -> Self:
@@ -126,6 +133,9 @@ class Request(Expr):
             exprs.append(f"ON {condition}")
         return exprs
 
+    def _build_limit(self) -> str:
+        return f"LIMIT {self._limit}" if self._limit else ""
+
     def build(self) -> str:
         """ Build the query """
         return f"{" " if self._compact else "\n"}".join(
@@ -136,6 +146,7 @@ class Request(Expr):
                 *self._build_join(),
                 self._build_group_by(),
                 self._build_having(),
-                self._build_order_by()
+                self._build_order_by(),
+                self._build_limit()
             ] if part
         )
