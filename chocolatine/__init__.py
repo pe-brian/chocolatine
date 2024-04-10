@@ -9,4 +9,4 @@ from .type import Type  # noqa
 from .join_type import JoinType  # noqa
 from .table import Table  # noqa
 from .utils import quote_expr  # noqa
-from .shortcut import count, sum  # noqa
+from .shortcut import count, sum, asc, desc, upper, lower, day, month, year  # noqa

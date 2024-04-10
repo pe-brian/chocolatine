@@ -1,4 +1,8 @@
-from typing import Any, Self
+from __future__ import annotations
+from typing import Any, Iterable, Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .request import Request
 
 from typeguard import typechecked
 
@@ -23,6 +27,14 @@ class Col(Expr):
             ordering: Ordering | None = None,
             ref: str | None = None
     ) -> None:
+        if not name:
+            raise ValueError("The name parameter must not be empty")
+        if name.startswith("<:"):
+            name = name[2:]
+            ordering = Ordering.Descending
+        elif name.startswith(">:"):
+            name = name[2:]
+            ordering = Ordering.Ascending
         super().__init__(name=name, alias=alias, ref=ref)
         self._agg_function = agg_function
         self._sql_function = sql_function
@@ -52,11 +64,18 @@ class Col(Expr):
     def __and__(self, value: Any) -> Self:
         if not self._concatenation:
             self._concatenation.append(self.copy())
+        self._sql_function = None
         self._concatenation.append(value)
         return self
 
     def __rand__(self, value: Any) -> Self:
         return self.__and__(value)
+
+    def __rshift__(self, value: str) -> Condition:
+        return self.like(value)
+
+    def __lshift__(self, expr: Request | Iterable[Any]) -> Condition:
+        return self.isin(expr)
 
     def order(self, ordering: Ordering = Ordering.Ascending) -> Self:
         """ Order a column """
@@ -75,8 +94,12 @@ class Col(Expr):
         """ Apply the "like" operator """
         return Condition(self, Operator.Like, expr)
 
-    def isin(self, *expr: str):
+    def isin(self, expr: Request | Iterable[Any]):
         """ Apply the "in" operator """
+        try:
+            expr = expr.build()
+        except AttributeError:
+            pass
         return Condition(self, Operator.In, expr)
 
     def upper(self) -> Self:
@@ -91,6 +114,12 @@ class Col(Expr):
 
     def alias(self, name: str) -> Self:
         """ Set an alias """
+        if name.startswith("<:"):
+            name = name[2:]
+            self._ordering = Ordering.Descending
+        elif name.startswith(">:"):
+            name = name[2:]
+            self._ordering = Ordering.Ascending
         self._alias = name
         return self
 

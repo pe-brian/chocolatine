@@ -1,4 +1,5 @@
-from chocolatine import Request, Col, Table, JoinType
+from chocolatine import Request, Col, month, year, sum
+from chocolatine.shortcut import count
 
 
 def test_request_1a():
@@ -47,21 +48,19 @@ SELECT *
 FROM actor
 WHERE (last_name LIKE '%GEN%')\
 """
-# --'WHERE last_name LIKE '%GEN%'\
-
-# error
 
 
 def test_request_2c():
     """ Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that order:"""
     assert Request(compact=False) \
         .table("actor")\
-        .select("last_name", "first_name")\
+        .select(Col("last_name").order(), Col("first_name").order())\
         .filter(Col("last_name").like(r'%LI%'))\
         .build() == """\
 SELECT last_name, first_name
 FROM actor
-WHERE (last_name LIKE '%LI%')\
+WHERE (last_name LIKE '%LI%')
+ORDER BY last_name ASC, first_name ASC\
 """
 
 
@@ -70,14 +69,12 @@ def test_request_2d():
     assert Request(compact=False) \
         .table('country') \
         .select('country_id', 'country') \
-        .filter(Col('country').isin('Afghanistan', 'Bangladesh', 'China')) \
+        .filter(Col('country').isin(('Afghanistan', 'Bangladesh', 'China'))) \
         .build() == """\
 SELECT country_id, country
 FROM country
 WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))\
 """
-# error
-# problème de paranthèse
 
 
 # 3a. Add a `middle_name` column to the table `actor`. Position it between `first_name` and `last_name`. Hint: you will need to
@@ -153,41 +150,99 @@ def test_request_6a():
     assert Request(compact=False)\
         .table("staff:s")\
         .select("s.first_name", "s.last_name", "a.address")\
-        .join(Table("address:a"), Col("s.address_id") == Col("a.address_id"), JoinType.Inner)\
+        .join("address:a", "address_id")\
         .build() == """\
 SELECT s.first_name, s.last_name, a.address
 FROM staff AS s
 INNER JOIN address AS a
-ON (s.address_id = a.address_id)\
+ON (a.address_id = s.address_id)\
 """
 
-#   USING (film_id)
-#   WHERE title = 'Hunchback Impossible'
-#   GROUP BY title;
 
-# 6e. Using the tables `payment` and `customer` and the `JOIN` command, list the total paid by each customer. List the customers
-# alphabetically by last name:
+def test_request_6b():
+    """ Use `JOIN` to display the total amount rung up by each staff member in August of 2005. Use tables `staff` and `payment` """
+    assert Request(compact=False)\
+        .table("staff:s")\
+        .select("s.first_name", "s.last_name", sum("p.amount"))\
+        .join("payment:p", "staff_id")\
+        .filter((month("p.payment_date") == 8) & (year("p.payment_date") == 2005))\
+        .group_by("s.staff_id")\
+        .build() == """\
+SELECT s.first_name, s.last_name, SUM(p.amount)
+FROM staff AS s
+INNER JOIN payment AS p
+ON (p.staff_id = s.staff_id)
+WHERE ((MONTH(p.payment_date) = 8) AND (YEAR(p.payment_date) = 2005))
+GROUP BY s.staff_id\
+"""
 
-# SELECT c.last_name, c.first_name, SUM(p.amount) AS 'Total Amount Paid'
-# FROM customer c
-# INNER JOIN payment p 
-# ON (c.customer_id = p.customer_id)
-# GROUP BY c.last_name
-# ORDER BY c.last_name;
 
-# 7a. The music of Queen and Kris Kristofferson have seen an unlikely resurgence. As an unintended consequence, films starting with
-# the letters `K` and `Q` have also soared in popularity. Use subqueries to display the titles of movies starting with the letters
-# `K` and `Q` whose language is English.
+def test_request_6c():
+    """ List each film and the number of actors who are listed for that film. Use tables `film_actor` and `film`. Use inner join """
+    assert Request(compact=False)\
+        .table("film:f")\
+        .select("f.title", count().alias("<:Number_of_Actors"))\
+        .join("film_actor:a", "film_id")\
+        .group_by("f.title")\
+        .build() == """\
+SELECT f.title, COUNT(*) AS Number_of_Actors
+FROM film AS f
+INNER JOIN film_actor AS a
+ON (a.film_id = f.film_id)
+GROUP BY f.title
+ORDER BY Number_of_Actors DESC\
+"""
 
-#   SELECT title
-#   FROM film
-#   WHERE title LIKE 'K%'
-#   OR title LIKE 'Q%'
-#   AND language_id IN
-#   (SELECT language_id
-#   FROM language
-#   WHERE name = 'English'
-#   );
+
+def test_request_6d():
+    """ How many copies of the film `Hunchback Impossible` exist in the inventory system? """
+    assert Request(compact=False, using=True)\
+        .table("film")\
+        .select("title", count().alias("Number_of_copies"))\
+        .filter(Col("title") == "Hunchback Impossible")\
+        .join("inventory", "film_id")\
+        .group_by("title")\
+        .build() == """\
+SELECT title, COUNT(*) AS Number_of_copies
+FROM film
+INNER JOIN inventory
+USING (film_id)
+WHERE (title = 'Hunchback Impossible')
+GROUP BY title\
+"""
+
+
+def test_request_6e():
+    """ Using the tables `payment` and `customer` and the `JOIN` command, list the total paid by each customer. List the customers """
+    assert Request(compact=False)\
+        .table("customer:c")\
+        .select(">:c.last_name", "c.first_name", sum("p.amount").alias("Total_Amount_Paid"))\
+        .join("payment:p", "customer_id")\
+        .group_by("c.last_name")\
+        .build() == """\
+SELECT c.last_name, c.first_name, SUM(p.amount) AS Total_Amount_Paid
+FROM customer AS c
+INNER JOIN payment AS p
+ON (p.customer_id = c.customer_id)
+GROUP BY c.last_name
+ORDER BY c.last_name ASC\
+"""
+
+
+def test_request_7a():
+    """ The music of Queen and Kris Kristofferson have seen an unlikely resurgence. As an unintended consequence, films starting with
+        the letters `K` and `Q` have also soared in popularity. Use subqueries to display the titles of movies starting with the letters
+        `K` and `Q` whose language is English. """
+    assert Request(compact=False)\
+        .table("film")\
+        .select("title")\
+        .filter(((Col("title") >> "K%") | (Col("title") >> "Q%")) & (Col("language_id") << Request(table="language").select("language_id").filter(Col("name") == "English")))\
+        .build() == """\
+SELECT title
+FROM film
+WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN 'SELECT language_id FROM language WHERE (name = 'English')'))\
+"""
+
 
 # 7b. Use subqueries to display all actors who appear in the film `Alone Trip`.
 

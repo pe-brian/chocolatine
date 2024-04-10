@@ -16,7 +16,7 @@ __Concatenation & filtering__ :
 from chocolatine import Request, Col as _
 
 req = Request().table("customer")\
-               .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias("name"))\
+               .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
                .filter(_("first_name").like("%E"))
 print(req)
 ```
@@ -31,11 +31,7 @@ __Group by, aggregation & filtering__ :
 from chocolatine import Request, sum, Col as _
 
 req = Request().table("payment")\
-               .select(
-                    "customer_id",
-                    count().alias("payment_count"),
-                    sum("amount").alias("total_amount").order()\
-               )\
+               .select("customer_id", count().alias("payment_count"), sum("amount").alias("total_amount").order())\
                .group_by("customer_id")\
                .filter(count() > 1 & sum("amount") > 5.00)\
                .filter(_("customer_id") != 3)
@@ -101,13 +97,22 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
 - Automatic join condition on same name columns for both tables
 - Auto-alias on join clause if needed
+- Use of auto-alias on select clause if needed
+- Shortcut functions : Asc, Desc, Sum, Count, Upper, Lower
+- \>: or <: at first position in column name in select to set the ordering
+- \>: or <: in column alias
+- \>\> operator to perform a "like" condition on a column
+- << operator to perform a "in" condition on a column
+- Limit clause
+- Using keyword
+- Nested select requests
 
 # To-do
 
 - Check conditions values
+- Concat shortcut function
 - Possibility to disable dynamic type checking (for performance concerns)
 - Implement Case-When
-- Auto ambiguity removing on select columns names (after a join clause for example)
 - Create requests
 - Update requests
 - Delete requests

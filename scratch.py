@@ -1,7 +1,6 @@
 import mysql.connector
 
-from chocolatine.col import Col as _
-from chocolatine.request import Request
+from chocolatine import Request, month, year, sum
 
 
 conn = mysql.connector.connect(
@@ -13,11 +12,14 @@ conn = mysql.connector.connect(
 )
 
 cur = conn.cursor()
-req = Request(compact=False).table("film")\
-               .select("title", "film_id", _("first_name") & " " & _("last_name"))\
-               .join("film_actor", "film_id")\
-               .join("actor", "actor_id")\
-               .build()
+req = Request(compact=False)\
+        .table("staff:s")\
+        .select("s.first_name", "s.last_name", sum("p.amount"))\
+        .join("payment:p", "staff_id")\
+        .filter((month("p.payment_date") == 8) & (year("p.payment_date") == 2005))\
+        .group_by("s.staff_id")\
+        .build()
 print(req)
 cur.execute(req)
-print(cur.fetchone())
+
+print(cur.fetchall())

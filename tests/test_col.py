@@ -1,5 +1,7 @@
 from chocolatine import Col as _, AggFunction
+from chocolatine.col import Col
 from chocolatine.ordering import Ordering
+from chocolatine.shortcut import lower
 
 
 def test_col_init():
@@ -70,11 +72,15 @@ def test_col_concat():
     assert type(col) is _
     assert col == "CONCAT(first_name, ' ', last_name)"
     assert col.alias("name").build() == "CONCAT(first_name, ' ', last_name) AS name"
+    assert (Col("first_name") & " " & Col("last_name")).lower().build() == "LOWER(CONCAT(first_name, ' ', last_name))"
+    assert (lower("first_name") & " " & lower("last_name")).build() == "CONCAT(LOWER(first_name), ' ', LOWER(last_name))"
 
 
 def test_col_like():
     assert _("fruit").like("ap%").build() == "(fruit LIKE 'ap%')"
+    assert (_("fruit") >> "ap%").build() == "(fruit LIKE 'ap%')"
 
 
 def test_col_in():
-    assert _("fruit").isin("banana", "apple", "strawberry").build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
+    assert _("fruit").isin(("banana", "apple", "strawberry")).build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
+    assert (_("fruit") << ("banana", "apple", "strawberry")).build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
