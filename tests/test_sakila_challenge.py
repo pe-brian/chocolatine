@@ -1,4 +1,4 @@
-from chocolatine import Request, Col, Table, JoinType
+from chocolatine import Request, Col
 
 
 def test_request_1a():
@@ -47,21 +47,19 @@ SELECT *
 FROM actor
 WHERE (last_name LIKE '%GEN%')\
 """
-# --'WHERE last_name LIKE '%GEN%'\
-
-# error
 
 
 def test_request_2c():
     """ Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that order:"""
     assert Request(compact=False) \
         .table("actor")\
-        .select("last_name", "first_name")\
+        .select(Col("last_name").order(), Col("first_name").order())\
         .filter(Col("last_name").like(r'%LI%'))\
         .build() == """\
 SELECT last_name, first_name
 FROM actor
-WHERE (last_name LIKE '%LI%')\
+WHERE (last_name LIKE '%LI%')
+ORDER BY last_name ASC, first_name ASC\
 """
 
 
@@ -76,8 +74,6 @@ SELECT country_id, country
 FROM country
 WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))\
 """
-# error
-# problème de paranthèse
 
 
 # 3a. Add a `middle_name` column to the table `actor`. Position it between `first_name` and `last_name`. Hint: you will need to
@@ -153,12 +149,12 @@ def test_request_6a():
     assert Request(compact=False)\
         .table("staff:s")\
         .select("s.first_name", "s.last_name", "a.address")\
-        .join(Table("address:a"), Col("s.address_id") == Col("a.address_id"), JoinType.Inner)\
+        .join("address:a", "address_id")\
         .build() == """\
 SELECT s.first_name, s.last_name, a.address
 FROM staff AS s
 INNER JOIN address AS a
-ON (s.address_id = a.address_id)\
+ON (a.address_id = s.address_id)\
 """
 
 #   USING (film_id)

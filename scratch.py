@@ -1,7 +1,6 @@
 import mysql.connector
 
-from chocolatine.col import Col as _
-from chocolatine.request import Request
+from chocolatine import Request, Col as _, lower
 
 
 conn = mysql.connector.connect(
@@ -13,11 +12,11 @@ conn = mysql.connector.connect(
 )
 
 cur = conn.cursor()
-req = Request(compact=False).table("film")\
-               .select("title", "film_id", _("first_name") & " " & _("last_name"))\
-               .join("film_actor", "film_id")\
-               .join("actor", "actor_id")\
-               .build()
+req = Request(compact=False) \
+        .table("actor")\
+        .select("last_name", (lower("first_name") & " " & lower("last_name")).alias(">:name"))\
+        .filter(_("last_name") << ("JANE", "LUC"))\
+        .build()
 print(req)
 cur.execute(req)
 print(cur.fetchone())

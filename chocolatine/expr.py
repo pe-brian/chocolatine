@@ -10,6 +10,8 @@ from chocolatine.utils import gen_random_string
 class Expr:
     """ Name with reference and alias """
     def __init__(self, name: str, alias: str | None = None, ref: str | None = None) -> None:
+        if not name:
+            raise ValueError("The name parameter must not be empty")
         if name != "*":
             match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)
             if not match:

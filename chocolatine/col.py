@@ -1,4 +1,4 @@
-from typing import Any, Self
+from typing import Any, Iterable, Self
 
 from typeguard import typechecked
 
@@ -23,6 +23,14 @@ class Col(Expr):
             ordering: Ordering | None = None,
             ref: str | None = None
     ) -> None:
+        if not name:
+            raise ValueError("The name parameter must not be empty")
+        if name.startswith("<:"):
+            name = name[2:]
+            ordering = Ordering.Descending
+        elif name.startswith(">:"):
+            name = name[2:]
+            ordering = Ordering.Ascending
         super().__init__(name=name, alias=alias, ref=ref)
         self._agg_function = agg_function
         self._sql_function = sql_function
@@ -52,11 +60,18 @@ class Col(Expr):
     def __and__(self, value: Any) -> Self:
         if not self._concatenation:
             self._concatenation.append(self.copy())
+        self._sql_function = None
         self._concatenation.append(value)
         return self
 
     def __rand__(self, value: Any) -> Self:
         return self.__and__(value)
+
+    def __rshift__(self, value: str) -> Condition:
+        return self.like(value)
+
+    def __lshift__(self, lst: Iterable[Any]) -> Condition:
+        return self.isin(*lst)
 
     def order(self, ordering: Ordering = Ordering.Ascending) -> Self:
         """ Order a column """
@@ -91,6 +106,12 @@ class Col(Expr):
 
     def alias(self, name: str) -> Self:
         """ Set an alias """
+        if name.startswith("<:"):
+            name = name[2:]
+            self._ordering = Ordering.Descending
+        elif name.startswith(">:"):
+            name = name[2:]
+            self._ordering = Ordering.Ascending
         self._alias = name
         return self
 

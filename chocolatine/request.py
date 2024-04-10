@@ -113,9 +113,10 @@ class Request(Expr):
 
     def _build_order_by(self) -> str:
         ordering = []
+        print([str(col) for col in self._selected_cols])
         for col in self._selected_cols:
-            if type(col) is Col and col._ordering is not None:
-                ordering.append(f"{col._name} {col._ordering.value}")
+            if col._ordering is not None:
+                ordering.append(f"{col._alias if col._alias else col._name} {col._ordering.value}")
         return f"ORDER BY {", ".join(ordering)}" if ordering else ""
 
     def _build_join(self) -> List[str]:
