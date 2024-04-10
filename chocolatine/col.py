@@ -1,4 +1,8 @@
-from typing import Any, Iterable, Self
+from __future__ import annotations
+from typing import Any, Iterable, Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .request import Request
 
 from typeguard import typechecked
 
@@ -70,8 +74,8 @@ class Col(Expr):
     def __rshift__(self, value: str) -> Condition:
         return self.like(value)
 
-    def __lshift__(self, lst: Iterable[Any]) -> Condition:
-        return self.isin(*lst)
+    def __lshift__(self, expr: Request | Iterable[Any]) -> Condition:
+        return self.isin(expr)
 
     def order(self, ordering: Ordering = Ordering.Ascending) -> Self:
         """ Order a column """
@@ -90,8 +94,12 @@ class Col(Expr):
         """ Apply the "like" operator """
         return Condition(self, Operator.Like, expr)
 
-    def isin(self, *expr: str):
+    def isin(self, expr: Request | Iterable[Any]):
         """ Apply the "in" operator """
+        try:
+            expr = expr.build()
+        except AttributeError:
+            pass
         return Condition(self, Operator.In, expr)
 
     def upper(self) -> Self:

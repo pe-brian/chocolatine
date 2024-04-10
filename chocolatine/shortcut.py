@@ -40,3 +40,21 @@ def upper(col_name: str) -> Col:
 def lower(col_name: str) -> Col:
     """ Shortcut to create a column and apply the "upper" SQL function """
     return Col(name=col_name, sql_function=SqlFunction.Lower)
+
+
+@typechecked
+def day(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the "day" SQL function """
+    return Col(name=col_name, sql_function=SqlFunction.Day)
+
+
+@typechecked
+def month(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the "month" SQL function """
+    return Col(name=col_name, sql_function=SqlFunction.Month)
+
+
+@typechecked
+def year(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the "year" SQL function """
+    return Col(name=col_name, sql_function=SqlFunction.Year)

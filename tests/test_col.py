@@ -82,5 +82,5 @@ def test_col_like():
 
 
 def test_col_in():
-    assert _("fruit").isin("banana", "apple", "strawberry").build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
+    assert _("fruit").isin(("banana", "apple", "strawberry")).build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
     assert (_("fruit") << ("banana", "apple", "strawberry")).build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
