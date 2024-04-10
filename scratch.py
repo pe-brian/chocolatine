@@ -13,10 +13,10 @@ conn = mysql.connector.connect(
 )
 
 cur = conn.cursor()
-req = Request().table("film:f")\
-               .select("f.title", _("a.first_name") & " " & _("a.last_name"))\
-               .join("film_actor:fa", _("fa.film_id") == _("f.film_id"))\
-               .join("actor:a", _("a.actor_id") == _("fa.actor_id"))\
+req = Request(compact=False).table("film")\
+               .select("title", "film_id", _("first_name") & " " & _("last_name"))\
+               .join("film_actor", "film_id")\
+               .join("actor", "actor_id")\
                .build()
 print(req)
 cur.execute(req)

@@ -13,7 +13,7 @@ from .sql_function import SqlFunction
 
 @typechecked
 class Col(Expr):
-
+    """ SQL column """
     def __init__(
             self,
             name: str,
@@ -30,6 +30,7 @@ class Col(Expr):
         self._concatenation = []
 
     def copy(self) -> Self:
+        """ Copy the column """
         return Col(
             name=self._name,
             alias=self._alias,
@@ -58,54 +59,68 @@ class Col(Expr):
         return self.__and__(value)
 
     def order(self, ordering: Ordering = Ordering.Ascending) -> Self:
+        """ Order a column """
         self._ordering = ordering
         return self
 
     def asc(self) -> Self:
+        """ Order a column by ascending order """
         return self.order(Ordering.Ascending)
 
     def desc(self) -> Self:
+        """ Order a column by descending order """
         return self.order(Ordering.Descending)
 
     def like(self, expr: str):
+        """ Apply the "like" operator """
         return Condition(self, Operator.Like, expr)
 
     def isin(self, *expr: str):
+        """ Apply the "in" operator """
         return Condition(self, Operator.In, expr)
 
     def upper(self) -> Self:
+        """ Apply the "upper" operator """
         self._sql_function = SqlFunction.Upper
         return self
 
     def lower(self) -> Self:
+        """ Apply the "lower" operator """
         self._sql_function = SqlFunction.Lower
         return self
 
     def alias(self, name: str) -> Self:
+        """ Set an alias """
         self._alias = name
         return self
 
     def aggregate(self, agg_function: AggFunction) -> Self:
+        """ Set an aggregate function """
         self._agg_function = agg_function
         return self
 
     def sum(self) -> Self:
+        """ Apply the "sum" function """
         self._agg_function = AggFunction.Sum
         return self
 
     def count(self) -> Self:
+        """ Apply the "count" function """
         self._agg_function = AggFunction.Count
         return self
 
     def max(self) -> Self:
+        """ Apply the "max" function """
         self._agg_function = AggFunction.Max
         return self
 
     def min(self) -> Self:
+        """ Apply the "min" function """
         self._agg_function = AggFunction.Min
         return self
 
     def average(self) -> Self:
+        """ Apply the "avg" function """
         self._agg_function = AggFunction.Average
         return self
 

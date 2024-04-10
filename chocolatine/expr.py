@@ -3,10 +3,12 @@ from typing import Self
 
 from typeguard import typechecked
 
+from chocolatine.utils import gen_random_string
+
 
 @typechecked
 class Expr:
-
+    """ Name with reference and alias """
     def __init__(self, name: str, alias: str | None = None, ref: str | None = None) -> None:
         if name != "*":
             match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)
@@ -23,8 +25,9 @@ class Expr:
                 raise ValueError("Ref parameter can't be used with when name is *")
             self._ref = ref
 
-    def alias(self, name: str) -> Self:
-        self._alias = name
+    def alias(self, name: str | None = None) -> Self:
+        """ Set an alias """
+        self._alias = name or gen_random_string(8)
         return self
 
     def __str__(self) -> str:
@@ -46,4 +49,5 @@ class Expr:
         return (self._ref + ".") if self._ref else ""
 
     def build(self) -> str:
+        """ Build the expression """
         return f"{self._build_full_name()}{self._build_alias()}"

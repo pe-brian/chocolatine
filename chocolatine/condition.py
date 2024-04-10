@@ -9,7 +9,7 @@ from .operator import Operator
 
 @typechecked
 class Condition(Expr):
-
+    """ SQL condition """
     def __init__(self, left_value: Any, op: Operator, right_value: Any, negate: bool = False) -> None:
         self._left_value = left_value
         self._op = op
@@ -32,4 +32,5 @@ class Condition(Expr):
         return Condition(left_value=self._left_value, op=self._op, right_value=self._right_value, negate=True)
 
     def build(self) -> str:
+        """ Build the condition """
         return ("NOT" if self._negate else "") + f"({quote_expr(self._left_value)} {self._op.value} {quote_expr(self._right_value)})"
