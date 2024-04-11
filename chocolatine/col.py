@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 from typeguard import typechecked
 
 from .utils import quote_expr
-from .expr import Expr
+from .named_expr import NamedExpr
 from .condition import Condition
 from .operator import Operator
 from .ordering import Ordering
@@ -16,7 +16,7 @@ from .sql_function import SqlFunction
 
 
 @typechecked
-class Col(Expr):
+class Col(NamedExpr):
     """ SQL column """
     def __init__(
             self,

@@ -1,10 +1,10 @@
 from typeguard import typechecked
 
-from .expr import Expr
+from .named_expr import NamedExpr
 
 
 @typechecked
-class Table(Expr):
+class Table(NamedExpr):
     """ SQL table """
     def __init__(
             self,

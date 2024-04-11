@@ -5,7 +5,7 @@ from typeguard import typechecked
 from chocolatine.operator import Operator
 
 from .agg_function import AggFunction
-from .expr import Expr
+from .named_expr import NamedExpr
 from .join_type import JoinType
 from .condition import Condition
 from .col import Col
@@ -13,7 +13,7 @@ from .table import Table
 
 
 @typechecked
-class Request(Expr):
+class Request(NamedExpr):
     """ Handler to generate a SQL request """
     def __init__(
             self,

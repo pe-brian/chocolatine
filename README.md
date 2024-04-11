@@ -90,7 +90,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 - Dynamic type checking
 - Use of : or @ in col or table name directly for alias
-- Expr value checking to prevent SQL injection attacks
+- NamedExpr value checking to prevent SQL injection attacks
 - Calls orders doesn't matter (except for join clauses)
 - Compact or extended SQL expressions
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)

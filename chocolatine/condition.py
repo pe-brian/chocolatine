@@ -7,12 +7,12 @@ if TYPE_CHECKING:
 from typeguard import typechecked
 
 from .utils import quote_expr
-from .expr import Expr
+from .named_expr import NamedExpr
 from .operator import Operator
 
 
 @typechecked
-class Condition(Expr):
+class Condition(NamedExpr):
     """ SQL condition """
     def __init__(
             self,
