@@ -1,22 +1,22 @@
 from __future__ import annotations
-from typing import Any, Iterable, Self, TYPE_CHECKING
+from typing import Iterable, Self, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .request import Request
 
 from typeguard import typechecked
 
-from .utils import quote_expr
-from .expr import Expr
+from ..utils import quote_expr
+from .named_expr import NamedExpr
 from .condition import Condition
-from .operator import Operator
-from .ordering import Ordering
-from .agg_function import AggFunction
-from .sql_function import SqlFunction
+from ..operator import Operator
+from ..ordering import Ordering
+from ..agg_function import AggFunction
+from ..sql_function import SqlFunction
 
 
 @typechecked
-class Col(Expr):
+class Col(NamedExpr):
     """ SQL column """
     def __init__(
             self,
@@ -52,29 +52,29 @@ class Col(Expr):
             ref=self._ref
         )
 
-    def __gt__(self, value: Any) -> Condition:
+    def __gt__(self, value: Col | int | float) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
 
-    def __eq__(self, value: Any) -> Condition:
+    def __eq__(self, value: Col | int | float | str) -> Condition:
         return Condition(left_value=self, op=Operator.Equal, right_value=value)
 
-    def __ne__(self, value: Any) -> Condition:
+    def __ne__(self, value: Col | int | float | str) -> Condition:
         return Condition(left_value=self, op=Operator.NotEqual, right_value=value)
 
-    def __and__(self, value: Any) -> Self:
+    def __and__(self, value: Col | str) -> Self:
         if not self._concatenation:
             self._concatenation.append(self.copy())
         self._sql_function = None
         self._concatenation.append(value)
         return self
 
-    def __rand__(self, value: Any) -> Self:
+    def __rand__(self, value: Col | str) -> Self:
         return self.__and__(value)
 
     def __rshift__(self, value: str) -> Condition:
         return self.like(value)
 
-    def __lshift__(self, expr: Request | Iterable[Any]) -> Condition:
+    def __lshift__(self, expr: Request | Iterable[int | float | str]) -> Condition:
         return self.isin(expr)
 
     def order(self, ordering: Ordering = Ordering.Ascending) -> Self:
@@ -94,7 +94,7 @@ class Col(Expr):
         """ Apply the "like" operator """
         return Condition(self, Operator.Like, expr)
 
-    def isin(self, expr: Request | Iterable[Any]):
+    def isin(self, expr: Request | Iterable[int | float | str]):
         """ Apply the "in" operator """
         try:
             expr = expr.build()
@@ -121,6 +121,11 @@ class Col(Expr):
             name = name[2:]
             self._ordering = Ordering.Ascending
         self._alias = name
+        return self
+
+    def remove_alias(self) -> Self:
+        """ Remove the alias """
+        self._alias = None
         return self
 
     def aggregate(self, agg_function: AggFunction) -> Self:

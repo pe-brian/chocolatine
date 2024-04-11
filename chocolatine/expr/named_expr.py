@@ -3,11 +3,12 @@ from typing import Self
 
 from typeguard import typechecked
 
-from chocolatine.utils import gen_random_string
+from .expr import Expr
+from ..utils import gen_random_string
 
 
 @typechecked
-class Expr:
+class NamedExpr(Expr):
     """ Name with reference and alias """
     def __init__(self, name: str, alias: str | None = None, ref: str | None = None) -> None:
         if not name:
@@ -31,12 +32,6 @@ class Expr:
         """ Set an alias """
         self._alias = name or gen_random_string(8)
         return self
-
-    def __str__(self) -> str:
-        return self.build()
-
-    def __expr__(self) -> str:
-        return self.build()
 
     def _build_name(self) -> str:
         return self._name

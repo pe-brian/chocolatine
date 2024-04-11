@@ -2,18 +2,18 @@ from typing import Iterable, List, Self
 
 from typeguard import typechecked
 
-from chocolatine.operator import Operator
-
-from .agg_function import AggFunction
-from .expr import Expr
-from .join_type import JoinType
+from .from_expr import FromExpr
+from ..operator import Operator
+from ..agg_function import AggFunction
+from .named_expr import NamedExpr
+from ..join_type import JoinType
 from .condition import Condition
 from .col import Col
 from .table import Table
 
 
 @typechecked
-class Request(Expr):
+class Request(NamedExpr):
     """ Handler to generate a SQL request """
     def __init__(
             self,
@@ -22,7 +22,6 @@ class Request(Expr):
             using: bool = False,
             table: str | Table | None = None
     ) -> None:
-        self._table = table
         self._selected_cols = []
         self._unique = False
         self._group_by_cols = []
@@ -34,10 +33,13 @@ class Request(Expr):
         self._joined_cols = {}
         self._limit = limit_to
         self._using = using
+        self._from_expr = None
+        if table:
+            self.table(table)
 
-    def table(self, name: str | Table, alias: str | None = None) -> Self:
+    def table(self, name: str | Table | None) -> Self:
         """ Set the table name """
-        self._table = Table(name=name, alias=alias) if type(name) is str else name
+        self._from_expr = FromExpr(name)
         return self
 
     def select(self, *selected_cols: str | Col) -> Self:
@@ -75,25 +77,25 @@ class Request(Expr):
         if not self._using:
             if not table._alias:
                 table.alias()
-            if not self._table._alias:
-                self._table.alias()
+            if not self._from_expr._table._alias:
+                self._from_expr._table.alias()
 
             def _gen_condition(table, other, condition):
                 left_table_alias = table._alias if type(table) is Table else Table(table)._alias
-                right_table_alias = (other._alias if hasattr(other, "_alias") else None) or self._table._alias
+                right_table_alias = (other._alias if hasattr(other, "_alias") else None) or self._from_expr._table._alias
                 self._joined_cols[condition] = (left_table_alias, right_table_alias)
                 return Col(f"{left_table_alias}.{condition}") == Col(f"{right_table_alias}.{condition}")
             if type(condition) is not Condition:
                 if type(condition) is str:
-                    condition = _gen_condition(table, self._last_joined_table or self._table, condition)
+                    condition = _gen_condition(table, self._last_joined_table or self._from_expr._table, condition)
                 else:
                     if len(condition) < 2:
                         raise ValueError("More conditions are expected")
                     for k in range(len(condition)):
                         if k == 0:
-                            c = _gen_condition(table, self._table, condition[0])
+                            c = _gen_condition(table, self._from_expr._table, condition[0])
                         elif k > 0:
-                            c = Condition(left_value=_gen_condition(table, self._table, condition[k]), op=Operator.And, right_value=c)
+                            c = Condition(left_value=_gen_condition(table, self._from_expr._table, condition[k]), op=Operator.And, right_value=c)
                     condition = c
             self._joins.append((table if type(table) is Table else Table(table), joinType, condition))
         else:
@@ -112,9 +114,6 @@ class Request(Expr):
         cols = ", ".join(list(_remove_col_ambiguity(col).build() for col in self._selected_cols)) if self._selected_cols else "*"
         expr += f"DISTINCT({cols})" if self._unique else cols
         return expr
-
-    def _build_from(self) -> str:
-        return f"FROM {self._table}"
 
     def _build_where(self) -> str:
         return f"WHERE {self._where_condition}" if self._where_condition else ""
@@ -150,7 +149,7 @@ class Request(Expr):
         return f"{" " if self._compact else "\n"}".join(
             part for part in [
                 self._build_select(),
-                self._build_from(),
+                self._from_expr.build() if self._from_expr else "",
                 *self._build_join(),
                 self._build_where(),
                 self._build_group_by(),

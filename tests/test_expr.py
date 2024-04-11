@@ -1,7 +1,7 @@
-from chocolatine.expr import Expr
+from chocolatine import NamedExpr
 
 
 def test_expr():
-    assert Expr(name="name", alias="alias", ref="table").build() == "table.name AS alias"
-    assert Expr(name="table.name@alias").build() == "table.name AS alias"
-    assert Expr(name="table.name:alias").build() == "table.name AS alias"
+    assert NamedExpr(name="name", alias="alias", ref="table").build() == "table.name AS alias"
+    assert NamedExpr(name="table.name@alias").build() == "table.name AS alias"
+    assert NamedExpr(name="table.name:alias").build() == "table.name AS alias"

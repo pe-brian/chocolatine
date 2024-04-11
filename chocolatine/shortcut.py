@@ -2,7 +2,7 @@ from typeguard import typechecked
 
 from .agg_function import AggFunction
 from .sql_function import SqlFunction
-from .col import Col
+from .expr.col import Col
 from .ordering import Ordering
 
 
