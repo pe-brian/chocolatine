@@ -41,6 +41,13 @@ class Condition(Expr):
     def __invert__(self) -> Self:
         return Condition(left_value=self._left_value, op=self._op, right_value=self._right_value, negate=True)
 
+    def _build_right_value(self) -> int | float | str | Col | Self:
+        try:
+            return f"({self._right_value.build()})" if self._op == Operator.In else self._right_value.build()
+        except AttributeError:
+            pass
+        return quote_expr(self._right_value)
+
     def build(self) -> str:
         """ Build the condition """
-        return ("NOT" if self._negate else "") + f"({quote_expr(self._left_value)} {self._op.value} {quote_expr(self._right_value)})"
+        return ("NOT" if self._negate else "") + f"({quote_expr(self._left_value)} {self._op.value} {self._build_right_value()})"

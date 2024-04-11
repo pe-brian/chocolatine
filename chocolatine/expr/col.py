@@ -90,16 +90,12 @@ class Col(NamedExpr):
         """ Order a column by descending order """
         return self.order(Ordering.Descending)
 
-    def like(self, expr: str):
+    def like(self, expr: str) -> Condition:
         """ Apply the "like" operator """
         return Condition(self, Operator.Like, expr)
 
-    def isin(self, expr: Request | Iterable[int | float | str]):
+    def isin(self, expr: Request | Iterable[int | float | str]) -> Condition:
         """ Apply the "in" operator """
-        try:
-            expr = expr.build()
-        except AttributeError:
-            pass
         return Condition(self, Operator.In, expr)
 
     def upper(self) -> Self:

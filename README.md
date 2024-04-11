@@ -110,6 +110,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # To-do
 
+- Try to remove join ambiguity on joined columns on names first, then on alias
 - Concat shortcut function
 - Possibility to disable dynamic type checking (for performance concerns)
 - Implement Case-When
