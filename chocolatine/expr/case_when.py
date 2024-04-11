@@ -2,9 +2,9 @@ from typing import Any, Iterable
 
 from typeguard import typechecked
 
-from .col import Col
-from .utils import quote_expr
 from .expr import Expr
+from .col import Col
+from ..utils import quote_expr
 
 
 @typechecked

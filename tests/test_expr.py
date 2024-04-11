@@ -1,4 +1,4 @@
-from chocolatine.named_expr import NamedExpr
+from chocolatine import NamedExpr
 
 
 def test_expr():

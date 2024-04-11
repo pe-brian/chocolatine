@@ -4,7 +4,7 @@ from typing import Self
 from typeguard import typechecked
 
 from .expr import Expr
-from .utils import gen_random_string
+from ..utils import gen_random_string
 
 
 @typechecked

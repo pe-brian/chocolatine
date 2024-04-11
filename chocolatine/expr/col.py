@@ -6,13 +6,13 @@ if TYPE_CHECKING:
 
 from typeguard import typechecked
 
-from .utils import quote_expr
+from ..utils import quote_expr
 from .named_expr import NamedExpr
 from .condition import Condition
-from .operator import Operator
-from .ordering import Ordering
-from .agg_function import AggFunction
-from .sql_function import SqlFunction
+from ..operator import Operator
+from ..ordering import Ordering
+from ..agg_function import AggFunction
+from ..sql_function import SqlFunction
 
 
 @typechecked

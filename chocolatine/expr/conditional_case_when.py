@@ -2,9 +2,9 @@ from typing import Any, Iterable, List
 
 from typeguard import typechecked
 
-from .utils import quote_expr
 from .expr import Expr
 from .condition import Condition
+from ..utils import quote_expr
 
 
 @typechecked

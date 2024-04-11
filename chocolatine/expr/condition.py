@@ -6,9 +6,9 @@ if TYPE_CHECKING:
 
 from typeguard import typechecked
 
-from .utils import quote_expr
-from .expr import Expr
-from .operator import Operator
+from ..utils import quote_expr
+from . import Expr
+from ..operator import Operator
 
 
 @typechecked

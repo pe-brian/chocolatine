@@ -1,5 +1,4 @@
-from chocolatine import Request, Col, month, year, sum
-from chocolatine.shortcut import count
+from chocolatine import Request, Col, month, year, sum, count
 
 
 def test_request_1a():

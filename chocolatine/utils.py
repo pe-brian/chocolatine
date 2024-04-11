@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Self, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .col import Col
+    from .expr.col import Col
 
 import random
 import string
