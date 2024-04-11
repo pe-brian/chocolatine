@@ -13,8 +13,8 @@ class ConditionalCaseWhen(Expr):
     def __init__(
             self,
             conditions: Iterable[Condition],
-            returned_vals: Iterable[Any],
-            else_returned_val: Any | None = None
+            returned_vals: Iterable[str | int | float],
+            else_returned_val: str | int | float | None = None
     ):
         if len(conditions) != len(returned_vals):
             raise ValueError("'conditions' and 'returned_vals' must have the same length")

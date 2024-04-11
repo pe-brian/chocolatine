@@ -123,6 +123,11 @@ class Col(NamedExpr):
         self._alias = name
         return self
 
+    def remove_alias(self) -> Self:
+        """ Remove the alias """
+        self._alias = None
+        return self
+
     def aggregate(self, agg_function: AggFunction) -> Self:
         """ Set an aggregate function """
         self._agg_function = agg_function

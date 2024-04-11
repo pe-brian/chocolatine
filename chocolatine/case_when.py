@@ -12,10 +12,10 @@ class CaseWhen(Expr):
     """ 'Case When' expression  """
     def __init__(
             self,
-            col: Col,
-            expected_vals: Iterable[Any],
-            returned_vals: Iterable[Any],
-            else_returned_val: Any | None = None
+            col: Col | str,
+            expected_vals: Iterable[str | int | float],
+            returned_vals: Iterable[str | int | float],
+            else_returned_val: str | int | float | None = None
     ):
         if len(expected_vals) != len(returned_vals):
             raise ValueError("'conditions' and 'returned_vals' must have the same length")
@@ -23,7 +23,7 @@ class CaseWhen(Expr):
         if len(returned_vals) == 0:
             raise ValueError("CaseWhen must not be empty")
 
-        self._col = col  # TD: simplify col here
+        self._col = (Col(col) if type(col) is str else col).remove_alias()
         self._items = [(expected_val, returned_val) for expected_val, returned_val in zip(expected_vals, returned_vals)]
         self._else_returned_val = else_returned_val
 
