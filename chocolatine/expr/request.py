@@ -2,6 +2,7 @@ from typing import Iterable, List, Self
 
 from typeguard import typechecked
 
+from .select import Select
 from .from_expr import FromExpr
 from ..operator import Operator
 from ..agg_function import AggFunction
@@ -22,7 +23,7 @@ class Request(NamedExpr):
             using: bool = False,
             table: str | Table | None = None
     ) -> None:
-        self._selected_cols = []
+        self._select = None
         self._unique = False
         self._group_by_cols = []
         self._where_condition = []
@@ -33,9 +34,8 @@ class Request(NamedExpr):
         self._joined_cols = {}
         self._limit = limit_to
         self._using = using
-        self._from_expr = None
-        if table:
-            self.table(table)
+        self._select = None
+        self._from_expr = FromExpr(table) if table else None
 
     def table(self, name: str | Table | None) -> Self:
         """ Set the table name """
@@ -44,7 +44,7 @@ class Request(NamedExpr):
 
     def select(self, *selected_cols: str | Col) -> Self:
         """ Set the selected cols """
-        self._selected_cols = [(col if type(col) is Col else Col(col)) for col in selected_cols]
+        self._select = Select(selected_cols)
         return self
 
     def distinct(self) -> Self:
@@ -111,7 +111,7 @@ class Request(NamedExpr):
                 col._ref = self._joined_cols[col._name][0]
             return col
         expr = "SELECT "
-        cols = ", ".join(list(_remove_col_ambiguity(col).build() for col in self._selected_cols)) if self._selected_cols else "*"
+        cols = ", ".join(list(_remove_col_ambiguity(col).build() for col in self._select._cols)) if self._select._cols else "*"
         expr += f"DISTINCT({cols})" if self._unique else cols
         return expr
 
@@ -126,7 +126,7 @@ class Request(NamedExpr):
 
     def _build_order_by(self) -> str:
         ordering = []
-        for col in self._selected_cols:
+        for col in self._select._cols:
             if col._ordering is not None:
                 ordering.append(f"{(col._ref + ".") if col._ref else ""}{col._alias if col._alias else col._name} {col._ordering.value}")
         return f"ORDER BY {", ".join(ordering)}" if ordering else ""
@@ -148,7 +148,7 @@ class Request(NamedExpr):
         """ Build the query """
         return f"{" " if self._compact else "\n"}".join(
             part for part in [
-                self._build_select(),
+                self._select.build() if self._select else "",
                 self._from_expr.build() if self._from_expr else "",
                 *self._build_join(),
                 self._build_where(),
