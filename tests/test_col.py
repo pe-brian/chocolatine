@@ -38,7 +38,7 @@ def test_col_build_immutable():
 
 
 def test_col_alias():
-    assert _("amount").alias("total_amount").build() != _("amount")
+    assert _("amount").alias("total_amount") != _("amount")
     assert _("amount").alias("total_amount").build() == "amount AS total_amount"
 
 
@@ -70,7 +70,7 @@ def test_col_average():
 def test_col_concat():
     col = _("first_name") & " " & _("last_name")
     assert type(col) is _
-    assert col == "CONCAT(first_name, ' ', last_name)"
+    assert col.build() == "CONCAT(first_name, ' ', last_name)"
     assert col.alias("name").build() == "CONCAT(first_name, ' ', last_name) AS name"
     assert (Col("first_name") & " " & Col("last_name")).lower().build() == "LOWER(CONCAT(first_name, ' ', last_name))"
     assert (lower("first_name") & " " & lower("last_name")).build() == "CONCAT(LOWER(first_name), ' ', LOWER(last_name))"

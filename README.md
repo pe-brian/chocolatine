@@ -106,10 +106,10 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Limit clause
 - Using keyword
 - Nested select requests
+- Check conditions values
 
 # To-do
 
-- Check conditions values
 - Concat shortcut function
 - Possibility to disable dynamic type checking (for performance concerns)
 - Implement Case-When

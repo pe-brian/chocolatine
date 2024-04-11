@@ -1,4 +1,8 @@
-from typing import Any, Self
+from __future__ import annotations
+from typing import Self, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .col import Col
 
 from typeguard import typechecked
 
@@ -10,22 +14,28 @@ from .operator import Operator
 @typechecked
 class Condition(Expr):
     """ SQL condition """
-    def __init__(self, left_value: Any, op: Operator, right_value: Any, negate: bool = False) -> None:
+    def __init__(
+            self,
+            left_value: int | float | str | Col | Self,
+            op: Operator,
+            right_value: int | float | str | Col | Self,
+            negate: bool = False
+    ) -> None:
         self._left_value = left_value
         self._op = op
         self._right_value = right_value
         self._negate = negate
 
-    def __and__(self, other) -> Self:
+    def __and__(self, other: int | float | str | Col | Self) -> Self:
         return Condition(left_value=self, op=Operator.And, right_value=other)
 
-    def __rand__(self, other) -> bool:
+    def __rand__(self, other: int | float | str | Col | Self) -> Self:
         return self.__and__(other)
 
-    def __or__(self, other) -> Self:
+    def __or__(self, other: int | float | str | Col | Self) -> Self:
         return Condition(left_value=self, op=Operator.Or, right_value=other)
 
-    def __ror__(self, other) -> bool:
+    def __ror__(self, other: int | float | str | Col | Self) -> Self:
         return self.__or__(other)
 
     def __invert__(self) -> Self:

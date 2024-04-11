@@ -25,7 +25,7 @@ FROM actor\
 
 
 def test_request_2a():
-    """ You need to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." What is 
+    """ You need to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." What is
         one query would you use to obtain this information ? """
     assert Request(compact=False) \
         .table("actor") \
@@ -309,7 +309,7 @@ WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN 'SELECT lang
 #   JOIN city cit
 #   ON (cit.city_id = a.city_id)
 #   JOIN country ctr
-#   ON(cit.country_id = ctr.country_id);	
+#   ON(cit.country_id = ctr.country_id);
 
 
 # 7h. List the top five genres in gross revenue in descending order. (**Hint**: you may need to use the following tables: category,
@@ -348,7 +348,7 @@ WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN 'SELECT lang
 
 # 8b. How would you display the view that you created in 8a?
 
-#   SELECT * 
+#   SELECT *
 #   FROM top_five_genres;
 
 # 8c. You find that you no longer need the view `top_five_genres`. Write a query to delete it.
