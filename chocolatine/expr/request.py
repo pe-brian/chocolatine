@@ -2,9 +2,10 @@ from typing import Iterable, List, Self
 
 from typeguard import typechecked
 
+from .having import Having
+from .where import Where
+from .select_from import SelectFrom
 from .limit import Limit
-from .select import Select
-from .from_expr import FromExpr
 from ..operator import Operator
 from ..agg_function import AggFunction
 from .named_expr import NamedExpr
@@ -22,34 +23,33 @@ class Request(NamedExpr):
             compact: bool = True,
             limit_to: int | None = None,
             using: bool = False,
-            table: str | Table | None = None
+            table: str | Table | None = None,
+            unique: bool = False
     ) -> None:
-        self._select = None
         self._group_by_cols = []
-        self._where_condition = []
-        self._having_condition = []
         self._joins = []
         self._compact = compact
         self._last_joined_table = None
         self._joined_cols = {}
         self._using = using
-        self._select = Select()
-        self._from_expr = FromExpr(table=table) if table else None
+        self._select_from = SelectFrom(table=table, unique=unique)
         self._limit = Limit(length=limit_to) if limit_to else None
+        self._where = Where()
+        self._having = Having()
 
-    def table(self, name: str | Table | None) -> Self:
+    def table(self, val: str | Table | None) -> Self:
         """ Set the table name """
-        self._from_expr = FromExpr(name)
+        self._select_from.from_expr.table = val
         return self
 
-    def select(self, *selected_cols: str | Col) -> Self:
+    def select(self, *vals: str | Col) -> Self:
         """ Set the selected cols """
-        self._select = Select(selected_cols)
+        self._select_from.select.cols = vals
         return self
 
     def distinct(self) -> Self:
         """ Filter the rows to remove duplicates (by selected columns)"""
-        self._select._unique = True
+        self._select_from.select.unique = True
         return self
 
     def head(self, length: int = 1) -> Self:
@@ -60,9 +60,9 @@ class Request(NamedExpr):
     def filter(self, condition: Condition) -> Self:
         """ Filter the rows according to the given condition """
         if any(x in condition.build() for x in set(e.value for e in AggFunction)):
-            self._having_condition = condition
+            self._having.condition = condition
         else:
-            self._where_condition = condition
+            self._where.condition = condition
         return self
 
     def group_by(self, *cols_names: str) -> Self:
@@ -77,25 +77,25 @@ class Request(NamedExpr):
         if not self._using:
             if not table._alias:
                 table.alias()
-            if not self._from_expr._table._alias:
-                self._from_expr._table.alias()
+            if not self._select_from.from_expr.table._alias:
+                self._select_from.from_expr.table.alias()
 
             def _gen_condition(table, other, condition):
                 left_table_alias = table._alias if type(table) is Table else Table(table)._alias
-                right_table_alias = (other._alias if hasattr(other, "_alias") else None) or self._from_expr._table._alias
+                right_table_alias = (other._alias if hasattr(other, "_alias") else None) or self._select_from.from_expr.table._alias
                 self._joined_cols[condition] = (left_table_alias, right_table_alias)
                 return Col(f"{left_table_alias}.{condition}") == Col(f"{right_table_alias}.{condition}")
             if type(condition) is not Condition:
                 if type(condition) is str:
-                    condition = _gen_condition(table, self._last_joined_table or self._from_expr._table, condition)
+                    condition = _gen_condition(table, self._last_joined_table or self._select_from.from_expr.table, condition)
                 else:
                     if len(condition) < 2:
                         raise ValueError("More conditions are expected")
                     for k in range(len(condition)):
                         if k == 0:
-                            c = _gen_condition(table, self._from_expr._table, condition[0])
+                            c = _gen_condition(table, self._select_from.from_expr.table, condition[0])
                         elif k > 0:
-                            c = Condition(left_value=_gen_condition(table, self._from_expr._table, condition[k]), op=Operator.And, right_value=c)
+                            c = Condition(left_value=_gen_condition(table, self._select_from.from_expr.table, condition[k]), op=Operator.And, right_value=c)
                     condition = c
             self._joins.append((table if type(table) is Table else Table(table), joinType, condition))
         else:
@@ -108,25 +108,18 @@ class Request(NamedExpr):
 
     def _remove_select_cols_ambiguity(self) -> None:
         """ Correct the columns names in 'select' if they must be clarified with an alias """
-        for selected_col in self._select._cols:
+        for selected_col in self._select_from.select.cols:
             if selected_col._name in self._joined_cols:
                 selected_col._ref = self._joined_cols[selected_col._name][0]
-
-    def _build_where(self) -> str:
-        return f"WHERE {self._where_condition}" if self._where_condition else ""
 
     def _build_group_by(self) -> str:
         return f"GROUP BY {", ".join(self._group_by_cols)}" if self._group_by_cols else ""
 
-    def _build_having(self) -> str:
-        return f"HAVING {self._having_condition}" if self._having_condition else ""
-
     def _build_order_by(self) -> str:
         ordering = []
-        if self._select:
-            for col in self._select._cols:
-                if col._ordering is not None:
-                    ordering.append(f"{(col._ref + ".") if col._ref else ""}{col._alias if col._alias else col._name} {col._ordering.value}")
+        for col in self._select_from.select.cols:
+            if col._ordering is not None:
+                ordering.append(f"{(col._ref + ".") if col._ref else ""}{col._alias if col._alias else col._name} {col._ordering.value}")
         return f"ORDER BY {", ".join(ordering)}" if ordering else ""
 
     def _build_join(self) -> List[str]:
@@ -146,12 +139,11 @@ class Request(NamedExpr):
         """ Build the query """
         return f"{" " if self._compact else "\n"}".join(
             part for part in [
-                self._select.build(),
-                self._from_expr.build() if self._from_expr else "",
+                self._select_from.build(),
                 *self._build_join(),
-                self._build_where(),
+                self._where.build() if self._where.condition else "",
                 self._build_group_by(),
-                self._build_having(),
+                self._having.build() if self._having.condition else "",
                 self._build_order_by(),
                 self._limit.build() if self._limit else "",
             ] if part

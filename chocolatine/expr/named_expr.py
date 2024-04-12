@@ -3,12 +3,12 @@ from typing import Self
 
 from typeguard import typechecked
 
-from .expr import Expr
+from .choc_expr import ChocExpr
 from ..utils import gen_random_string
 
 
 @typechecked
-class NamedExpr(Expr):
+class NamedExpr(ChocExpr):
     """ Name with reference and alias """
     def __init__(self, name: str, alias: str | None = None, ref: str | None = None) -> None:
         if not name:
