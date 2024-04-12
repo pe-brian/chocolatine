@@ -2,6 +2,8 @@ from typing import Iterable, List, Self
 
 from typeguard import typechecked
 
+from .having import Having
+from .where import Where
 from .select_from import SelectFrom
 from .limit import Limit
 from ..operator import Operator
@@ -25,8 +27,6 @@ class Request(NamedExpr):
             unique: bool = False
     ) -> None:
         self._group_by_cols = []
-        self._where_condition = []
-        self._having_condition = []
         self._joins = []
         self._compact = compact
         self._last_joined_table = None
@@ -34,6 +34,8 @@ class Request(NamedExpr):
         self._using = using
         self._select_from = SelectFrom(table=table, unique=unique)
         self._limit = Limit(length=limit_to) if limit_to else None
+        self._where = Where()
+        self._having = Having()
 
     def table(self, val: str | Table | None) -> Self:
         """ Set the table name """
@@ -58,9 +60,9 @@ class Request(NamedExpr):
     def filter(self, condition: Condition) -> Self:
         """ Filter the rows according to the given condition """
         if any(x in condition.build() for x in set(e.value for e in AggFunction)):
-            self._having_condition = condition
+            self._having.condition = condition
         else:
-            self._where_condition = condition
+            self._where.condition = condition
         return self
 
     def group_by(self, *cols_names: str) -> Self:
@@ -110,14 +112,8 @@ class Request(NamedExpr):
             if selected_col._name in self._joined_cols:
                 selected_col._ref = self._joined_cols[selected_col._name][0]
 
-    def _build_where(self) -> str:
-        return f"WHERE {self._where_condition}" if self._where_condition else ""
-
     def _build_group_by(self) -> str:
         return f"GROUP BY {", ".join(self._group_by_cols)}" if self._group_by_cols else ""
-
-    def _build_having(self) -> str:
-        return f"HAVING {self._having_condition}" if self._having_condition else ""
 
     def _build_order_by(self) -> str:
         ordering = []
@@ -145,9 +141,9 @@ class Request(NamedExpr):
             part for part in [
                 self._select_from.build(),
                 *self._build_join(),
-                self._build_where(),
+                self._where.build() if self._where.condition else "",
                 self._build_group_by(),
-                self._build_having(),
+                self._having.build() if self._having.condition else "",
                 self._build_order_by(),
                 self._limit.build() if self._limit else "",
             ] if part

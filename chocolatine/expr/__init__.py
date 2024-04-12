@@ -10,3 +10,5 @@ from .col import Col  # noqa
 from .case_when import CaseWhen  # noqa
 from .conditional_case_when import ConditionalCaseWhen  # noqa
 from .condition import Condition  # noqa
+from .where import Where  # noqa
+from .having import Having  # noqa
