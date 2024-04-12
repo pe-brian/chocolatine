@@ -2,13 +2,13 @@ from typing import Any, Iterable, List
 
 from typeguard import typechecked
 
-from .expr import Expr
+from .choc_expr import ChocExpr
 from .condition import Condition
 from ..utils import quote_expr
 
 
 @typechecked
-class ConditionalCaseWhen(Expr):
+class ConditionalCaseWhen(ChocExpr):
     """ Conditional 'Case When' expression """
     def __init__(
             self,

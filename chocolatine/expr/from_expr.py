@@ -1,17 +1,22 @@
 from typeguard import typechecked
 
-from .expr import Expr
+from .choc_expr import ChocExpr
 from .table import Table
 
 
 @typechecked
-class FromExpr(Expr):
+class FromExpr(ChocExpr):
     """ From expression """
     def __init__(
             self,
             table: Table | str
     ) -> None:
         self._table = Table(table) if type(table) is str else table
+        super().__init__(
+            choc_expr="FROM {table}",
+            table=self.table
+        )
 
-    def build(self) -> str:
-        return f"FROM {self._table}"
+    @property
+    def table(self):
+        return self._table

@@ -7,12 +7,12 @@ if TYPE_CHECKING:
 from typeguard import typechecked
 
 from ..utils import quote_expr
-from . import Expr
+from . import ChocExpr
 from ..operator import Operator
 
 
 @typechecked
-class Condition(Expr):
+class Condition(ChocExpr):
     """ SQL condition """
     def __init__(
             self,

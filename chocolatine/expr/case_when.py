@@ -2,13 +2,13 @@ from typing import Any, Iterable
 
 from typeguard import typechecked
 
-from .expr import Expr
+from .choc_expr import ChocExpr
 from .col import Col
 from ..utils import quote_expr
 
 
 @typechecked
-class CaseWhen(Expr):
+class CaseWhen(ChocExpr):
     """ 'Case When' expression  """
     def __init__(
             self,
