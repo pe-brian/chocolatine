@@ -14,8 +14,7 @@ class Limit(ChocExpr):
             raise ValueError("Length cannot be lower than 1")
         self._length = length
         super().__init__(
-            choc_expr="LIMIT {length}",
-            length=self.length
+            choc_expr="LIMIT {length}"
         )
 
     @property
