@@ -1,41 +1,48 @@
 import re
-from typing import Any
 
 from typeguard import typechecked
 
-from ..utils import proc_chocolang
+from .choc_expr_attr import ChocExprAttr
+from .expr import Expr
+from ..utils import flatten
 
 
 @typechecked
-class ChocExpr:
-    """ Expression """
+class ChocExpr(Expr):
+    """ Choc Expr """
 
     def __init__(
         self,
         choc_expr: str | None = None
     ) -> None:
-        self._choc_expr = None if choc_expr == "" else choc_expr
-        self._attr_keys = set(re.findall(r"{([A-Za-z_$]+)}", self._choc_expr)) if self._choc_expr else set()
+        self._expr = choc_expr or ""
+        # Extract the choc expr attr keys from the choc expr
+        self._keys = set(re.findall(r"{([A-Za-z_.$()]+)}", self._expr)) if self._expr else set()
+        # Clean the choc expr
+        for k, key in enumerate(self._keys):
+            self._expr = self._expr.replace(key, f"_{k}")
+        # Create the choc expr attributes
+        self._mapping = {f"_{k}": ChocExprAttr(self, key) for k, key in enumerate(self._keys)}
 
-    def __str__(self) -> str:
-        return self.build()
-
-    def __expr__(self) -> str:
-        return self.build()
-
-    def _get_attr_value(self, key: str) -> Any:
-        if key.startswith("$"):
-            val = getattr(self, key[1:])
-            if val is None:
-                raise ValueError("Choc expression contains a None value")
-            return ", ".join(str(x) for x in val)
-        val = getattr(self, key)
-        if val is None:
-            raise ValueError("Choc expression contains a None value")
-        return val
+    @staticmethod
+    def _process(expr: str | None) -> str:
+        if not expr:
+            return ""
+        parts = expr.split("@")
+        parts = flatten(list(part.split(";") for part in parts if part))
+        parts = list(part.split(":") for part in parts if part)
+        res = []
+        for part in parts:
+            if part[0] == 'False':
+                if part[2]:
+                    res.append(part[2])
+            elif part[0] == 'True':
+                if part[1]:
+                    res.append(part[1])
+            else:
+                if part[0]:
+                    res.append(part[0])
+        return "".join(res)
 
     def build(self) -> str:
-        """ Build the expression """
-        return proc_chocolang(
-            self._choc_expr.format(
-                **{attr_key: self._get_attr_value(attr_key) for attr_key in self._attr_keys}))
+        return ChocExpr._process(self._expr.format(**{k: v.build() for k, v in self._mapping.items()})) if self.buildable else ""

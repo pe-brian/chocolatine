@@ -154,6 +154,10 @@ class Col(NamedExpr):
         self._agg_function = AggFunction.Average
         return self
 
+    @property
+    def ordering_label(self) -> str:
+        return f"{(self._ref + ".") if self._ref else ""}{self._alias if self._alias else self._name} {self._ordering.value}" if self._ordering else None
+
     def _build_concat(self) -> str:
         return f"CONCAT({", ".join(quote_expr(x) if type(x) is str else str(x) for x in self._concatenation)})"
 

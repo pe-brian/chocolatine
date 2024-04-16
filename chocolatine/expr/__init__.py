@@ -12,3 +12,4 @@ from .conditional_case_when import ConditionalCaseWhen  # noqa
 from .condition import Condition  # noqa
 from .where import Where  # noqa
 from .having import Having  # noqa
+from .choc_expr_attr import ChocExprAttr  # noqa

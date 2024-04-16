@@ -15,7 +15,7 @@ class Select(ChocExpr):
     ) -> None:
         self.cols = cols
         self.unique = unique
-        super().__init__("SELECT @{unique}:DISTINCT(:;@{empty}:*:{$cols};@{unique}:):;")
+        super().__init__("SELECT @{unique}:DISTINCT(:;@{empty}:*:{$(cols)};@{unique}:):;")
 
     @property
     def unique(self):
