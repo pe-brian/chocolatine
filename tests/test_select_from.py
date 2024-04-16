@@ -28,7 +28,6 @@ FROM table\
 def test_select_from_update():
     sf = SelectFrom(table="table")
     sf.select.cols = ["a", "b", "c"]
-    print(list(str(col) for col in sf.select.cols))
     assert sf.build() == """\
 SELECT a, b, c
 FROM table\

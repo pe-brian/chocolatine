@@ -2,6 +2,8 @@ from typing import Iterable, List, Self
 
 from typeguard import typechecked
 
+from .order_by import OrderBy
+from .group_by import GroupBy
 from .having import Having
 from .where import Where
 from .select_from import SelectFrom
@@ -26,14 +28,15 @@ class Request(NamedExpr):
             table: str | Table | None = None,
             unique: bool = False
     ) -> None:
-        self._group_by_cols = []
         self._joins = []
         self._compact = compact
         self._last_joined_table = None
         self._joined_cols = {}
         self._using = using
         self._select_from = SelectFrom(table=table, unique=unique)
-        self._limit = Limit(length=limit_to) if limit_to else None
+        self._order_by = OrderBy(select=self._select_from.select)
+        self._group_by = GroupBy()
+        self._limit = Limit(length=limit_to)
         self._where = Where()
         self._having = Having()
 
@@ -67,7 +70,7 @@ class Request(NamedExpr):
 
     def group_by(self, *cols_names: str) -> Self:
         """ Group the rows of the specified columns """
-        self._group_by_cols = cols_names
+        self._group_by.cols = cols_names
         return self
 
     def join(self, table: str | Table, condition: Condition | str | Iterable[str], joinType: JoinType | None = JoinType.Inner) -> Self:
@@ -112,16 +115,6 @@ class Request(NamedExpr):
             if selected_col._name in self._joined_cols:
                 selected_col._ref = self._joined_cols[selected_col._name][0]
 
-    def _build_group_by(self) -> str:
-        return f"GROUP BY {", ".join(self._group_by_cols)}" if self._group_by_cols else ""
-
-    def _build_order_by(self) -> str:
-        ordering = []
-        for col in self._select_from.select.cols:
-            if col._ordering is not None:
-                ordering.append(f"{(col._ref + ".") if col._ref else ""}{col._alias if col._alias else col._name} {col._ordering.value}")
-        return f"ORDER BY {", ".join(ordering)}" if ordering else ""
-
     def _build_join(self) -> List[str]:
         exprs = []
         for table, join_type, condition in self._joins:
@@ -132,19 +125,16 @@ class Request(NamedExpr):
                 exprs.append(f"ON {condition}")
         return exprs
 
-    def _build_limit(self) -> str:
-        return f"LIMIT {self._limit}" if self._limit else ""
-
     def build(self) -> str:
         """ Build the query """
         return f"{" " if self._compact else "\n"}".join(
             part for part in [
                 self._select_from.build(),
                 *self._build_join(),
-                self._where.build() if self._where.condition else "",
-                self._build_group_by(),
-                self._having.build() if self._having.condition else "",
-                self._build_order_by(),
-                self._limit.build() if self._limit else "",
+                self._where.build(),
+                self._group_by.build(),
+                self._having.build(),
+                self._order_by.build(),
+                self._limit.build(),
             ] if part
         )

@@ -8,9 +8,9 @@ class Limit(ChocExpr):
     """ Limit expression """
     def __init__(
             self,
-            length: int
+            length: int | None
     ) -> None:
-        if length < 1:
+        if length is not None and length < 1:
             raise ValueError("Length cannot be lower than 1")
         self._length = length
         super().__init__("LIMIT {length}")
@@ -18,3 +18,7 @@ class Limit(ChocExpr):
     @property
     def length(self) -> int:
         return self._length
+
+    @property
+    def buildable(self) -> bool:
+        return self._length is not None and self._length > 0
