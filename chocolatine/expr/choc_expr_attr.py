@@ -37,4 +37,4 @@ class ChocExprAttr(Expr):
 
     def build(self) -> str:
         val = self._get_value()
-        return ", ".join(val) if isinstance(val, List) else val
+        return ", ".join(x for x in val if x) if isinstance(val, List) else val

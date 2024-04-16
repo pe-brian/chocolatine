@@ -26,6 +26,28 @@ class Condition(ChocExpr):
         self._right_value = right_value
         self._negate = negate
 
+        super().__init__("@{negate}:NOT :;({left_val} {op} {right_val})")
+
+    @property
+    def negate(self):
+        return self._negate
+
+    @property
+    def op(self):
+        return self._op.value
+
+    @property
+    def left_val(self):
+        return quote_expr(self._left_value)
+
+    @property
+    def right_val(self):
+        try:
+            return f"({self._right_value.build()})" if self._op == Operator.In else self._right_value.build()
+        except AttributeError:
+            pass
+        return quote_expr(self._right_value)
+
     def __and__(self, other: int | float | str | Col | Self) -> Self:
         return Condition(left_value=self, op=Operator.And, right_value=other)
 
@@ -40,14 +62,3 @@ class Condition(ChocExpr):
 
     def __invert__(self) -> Self:
         return Condition(left_value=self._left_value, op=self._op, right_value=self._right_value, negate=True)
-
-    def _build_right_value(self) -> int | float | str | Col | Self:
-        try:
-            return f"({self._right_value.build()})" if self._op == Operator.In else self._right_value.build()
-        except AttributeError:
-            pass
-        return quote_expr(self._right_value)
-
-    def build(self) -> str:
-        """ Build the condition """
-        return ("NOT" if self._negate else "") + f"({quote_expr(self._left_value)} {self._op.value} {self._build_right_value()})"

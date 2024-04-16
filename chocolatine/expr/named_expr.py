@@ -28,12 +28,6 @@ class NamedExpr(ChocExpr):
                 raise ValueError("Ref parameter can't be used with when name is *")
             self._ref = ref
 
-    @property
-    def undefined(self):
-        return 
-
-
-
     def alias(self, name: str | None = None) -> Self:
         """ Set an alias """
         self._alias = name or gen_random_string(8)
