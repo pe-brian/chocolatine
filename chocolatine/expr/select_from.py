@@ -33,3 +33,7 @@ class SelectFrom(ChocExpr):
     @property
     def from_expr(self):
         return self._from_expr
+
+    @property
+    def buildable(self) -> bool:
+        return self._from_expr.buildable

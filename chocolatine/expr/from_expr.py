@@ -21,3 +21,7 @@ class FromExpr(ChocExpr):
     @table.setter
     def table(self, value):
         self._table = Table(value) if type(value) is str else value
+
+    @property
+    def buildable(self) -> bool:
+        return self.table is not None

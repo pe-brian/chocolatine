@@ -107,6 +107,9 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Using keyword
 - Nested select requests
 - Check conditions values
+- Mini langage for SQL requests templating : Choc expr
+- Choc expr : Conditions
+- Choc expr : Basic loops (with unpacking lists)
 
 # To-do
 

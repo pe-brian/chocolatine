@@ -21,3 +21,7 @@ class Where(ChocExpr):
     @condition.setter
     def condition(self, value: Condition | None) -> None:
         self._condition = value
+
+    @property
+    def buildable(self) -> bool:
+        return self.condition is not None

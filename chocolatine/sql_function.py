@@ -18,3 +18,4 @@ class SqlFunction(Enum):
     Now = "NOW"
     Date = "DATE"
     DateDiff = "DATEDIFF"
+    Coalesce = "COALESCE"

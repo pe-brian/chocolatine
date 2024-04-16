@@ -1,14 +1,12 @@
-import pytest
 from chocolatine import SelectFrom
 
 
+def test_select_from_no_args():
+    assert SelectFrom().build() == ""
+    assert SelectFrom(cols=("a", "b", "c")).build() == ""
+
+
 def test_select_from_build():
-    with pytest.raises(ValueError):
-        SelectFrom().build()
-
-    with pytest.raises(ValueError):
-        SelectFrom(cols=("a", "b", "c")).build()
-
     assert SelectFrom(table="table").build() == """\
 SELECT *
 FROM table\
