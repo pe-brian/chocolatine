@@ -2,7 +2,7 @@ from chocolatine import Having, Col as _
 
 
 def test_having_no_args():
-    Having().build() == ""
+    assert Having().build() == ""
 
 
 def test_having():
