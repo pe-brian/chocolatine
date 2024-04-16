@@ -1,6 +1,10 @@
 from chocolatine import FromExpr, Table
 
 
+def test_from_expr_empty():
+    assert FromExpr().build() == ""
+
+
 def test_from_expr_without_ref_and_without_alias():
     assert FromExpr("table").build() == "FROM table"
     assert FromExpr(Table("table")).build() == "FROM table"

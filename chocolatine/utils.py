@@ -25,24 +25,3 @@ def gen_random_string(length: int) -> str:
 def flatten(lst):
     """ Flatten a list of list """
     return [x for row in lst for x in row]
-
-
-def proc_chocolang(expr: str | None) -> str:
-    """ Process an expression in chocolanguage into string """
-    if not expr:
-        return ""
-    parts = expr.split("@")
-    parts = flatten(list(part.split(";") for part in parts if part))
-    parts = list(part.split(":") for part in parts if part)
-    res = []
-    for part in parts:
-        if part[0] == 'False':
-            if part[2]:
-                res.append(part[2])
-        elif part[0] == 'True':
-            if part[1]:
-                res.append(part[1])
-        else:
-            if part[0]:
-                res.append(part[0])
-    return "".join(res)

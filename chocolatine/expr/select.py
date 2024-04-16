@@ -13,19 +13,26 @@ class Select(ChocExpr):
             cols: Iterable[Col | str] | None = None,
             unique: bool = False
     ) -> None:
-        self._cols = [Col(col) if type(col) is str else col for col in (cols or [])]
-        self._unique = unique
-        super().__init__(
-            choc_expr="SELECT @{unique}:DISTINCT(:;@{empty}:*:{joigned_cols};@{unique}:):;",
-            unique=self.unique,
-            empty=self.empty,
-            joigned_cols=", ".join(str(col) for col in self._cols)
-        )
+        self.cols = cols
+        self.unique = unique
+        super().__init__("SELECT @{unique}:DISTINCT(:;@{empty}:*:{$(cols)};@{unique}:):;")
 
     @property
     def unique(self):
         return self._unique
 
+    @unique.setter
+    def unique(self, value):
+        self._unique = value
+
     @property
     def empty(self):
         return len(self._cols) == 0
+
+    @property
+    def cols(self):
+        return self._cols
+
+    @cols.setter
+    def cols(self, value):
+        self._cols = [Col(col) if type(col) is str else col for col in (value or [])]
