@@ -7,7 +7,7 @@ def test_query_1a():
         compact=False,
         table="actor",
         cols=("first_name", "last_name"),
-    )) == r"""\
+    )) == """\
 SELECT first_name, last_name
 FROM actor
 """
@@ -19,7 +19,7 @@ def test_query_1b():
         compact=False,
         table="actor",
         cols=((_("first_name") & " " & _("last_name")).upper().alias("actor_name"),)
-    )) == r"""\
+    )) == """\
 SELECT UPPER(CONCAT(first_name, ' ', last_name)) AS actor_name
 FROM actor
 """
@@ -32,7 +32,7 @@ def test_query_2a():
         table="actor",
         cols=("actor_id", "first_name", "last_name"),
         filters=(_("first_name") == "Joe",)
-    )) == r"""\
+    )) == """\
 SELECT actor_id, first_name, last_name
 FROM actor
 WHERE (first_name = 'Joe')
@@ -45,7 +45,7 @@ def test_query_2b():
         compact=False,
         table="actor",
         filters=(_("last_name") >> r"%GEN%",)
-    )) == r"""\
+    )) == """\
 SELECT *
 FROM actor
 WHERE (last_name LIKE '%GEN%')
@@ -59,7 +59,7 @@ def test_query_2c():
         table="actor",
         cols=(">:last_name", ">:first_name",),
         filters=(_("last_name") >> r"%LI%",),
-    )) == r"""\
+    )) == """\
 SELECT last_name, first_name
 FROM actor
 WHERE (last_name LIKE '%LI%')
@@ -74,7 +74,7 @@ def test_query_2d():
         table="country",
         cols=("country_id", "country"),
         filters=(_("country") << ("Afghanistan", "Bangladesh", "China"),),
-    )) == r"""\
+    )) == """\
 SELECT country_id, country
 FROM country
 WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))
@@ -104,7 +104,7 @@ def test_query_4a():
         table="actor",
         cols=("last_name", count().alias("count")),
         groups=("last_name",),
-    )) == r"""\
+    )) == """\
 SELECT last_name, COUNT(*) AS count
 FROM actor
 GROUP BY last_name
@@ -119,7 +119,7 @@ def test_query_4b():
         cols=("last_name", count().alias("count")),
         groups=("last_name",),
         filters=(count() > 1,),
-    )) == r"""\
+    )) == """\
 SELECT last_name, COUNT(*) AS count
 FROM actor
 GROUP BY last_name
@@ -158,7 +158,7 @@ def test_query_6a():
         table="staff",
         cols=("first_name", "last_name", "address"),
         joins=(("address", "address_id"),),
-    )) == r"""\
+    )) == """\
 SELECT first_name, last_name, address
 FROM staff
 INNER JOIN address
@@ -175,7 +175,7 @@ def test_query_6b():
         joins=(("payment", "staff_id"),),
         filters=((month("payment_date") == 8) & (year("payment_date") == 2005),),
         groups=("staff_id",),
-    )) == r"""\
+    )) == """\
 SELECT first_name, last_name, SUM(amount)
 FROM staff
 INNER JOIN payment
@@ -193,7 +193,7 @@ def test_query_6c():
         cols=("title", count().alias("<:actor_count")),
         joins=(("film_actor", "film_id"),),
         groups=("title",),
-    )) == r"""\
+    )) == """\
 SELECT title, COUNT(*) AS actor_count
 FROM film
 INNER JOIN film_actor
@@ -212,7 +212,7 @@ def test_query_6d():
         filters=(_("title") == "Hunchback Impossible",),
         joins=(("inventory", "film_id"),),
         groups=("title",)
-    )) == r"""\
+    )) == """\
 SELECT title, COUNT(*) AS copies_count
 FROM film
 INNER JOIN inventory
@@ -230,7 +230,7 @@ def test_query_6e():
         cols=(">:last_name", "first_name", sum("amount").alias("total_paid_amount")),
         joins=(("payment", "customer_id"),),
         groups=("last_name",)
-    )) == r"""\
+    )) == """\
 SELECT last_name, first_name, SUM(amount) AS total_paid_amount
 FROM customer
 INNER JOIN payment
@@ -253,7 +253,7 @@ def test_query_7a():
                 filters=(_("name") == "English",),
             ),
         )
-    )) == r"""\
+    )) == """\
 SELECT title
 FROM film
 WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN (SELECT language_id FROM language WHERE (name = 'English'))))
@@ -279,7 +279,7 @@ def test_query_7b():
                 ),
             ),
         )
-    )) == r"""\
+    )) == """\
 SELECT first_name, last_name
 FROM actor
 WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT film_id FROM film WHERE (title = 'Alone Trip')))))
@@ -294,7 +294,7 @@ def test_query_7c():
         table="customer",
         joins=(("address", "address_id"), ("city", "city_id"), ("country", "country_id")),
         filters=(_("country") == "canada",)
-    )) == r"""\
+    )) == """\
 SELECT first_name, last_name, email
 FROM customer
 INNER JOIN address
@@ -315,7 +315,7 @@ def test_query_7d():
         cols=("title", "name"),
         joins=(("film_category", "film_id"), ("category", "category_id")),
         filters=(_("name") == "family",),
-    )) == r"""\
+    )) == """\
 SELECT title, name
 FROM film
 INNER JOIN film_category
@@ -334,7 +334,7 @@ def test_query_7e():
         cols=("title", count().alias("<:rentals")),
         joins=(("inventory", "film_id"), ("rental", "inventory_id")),
         groups=("title",)
-    )) == r"""\
+    )) == """\
 SELECT title, COUNT(*) AS rentals
 FROM film
 INNER JOIN inventory
@@ -354,7 +354,7 @@ def test_query_7f():
         cols=("store_id", sum("amount").alias("revenue")),
         joins=(("rental", "rental_id"), ("inventory", "inventory_id"), ("store", "store_id")),
         groups=("store_id",)
-    )) == r"""\
+    )) == """\
 SELECT store_id, SUM(amount) AS revenue
 FROM payment
 INNER JOIN rental
@@ -374,7 +374,7 @@ def test_query_7g():
         table="store",
         cols=("store_id", "city", "country"),
         joins=(("address", "address_id"), ("city", "city_id"), ("country", "country_id")),
-    )) == r"""\
+    )) == """\
 SELECT store_id, city, country
 FROM store
 INNER JOIN address
@@ -394,7 +394,7 @@ def test_query_7h():
         cols=(sum("amount").alias("<:total_amount"), "name"),
         joins=(("rental", "rental_id"), ("inventory", "inventory_id"), ("category", "category_id")),
         groups=("name",)
-    )) == r"""\
+    )) == """\
 SELECT SUM(amount) AS total_amount, name
 FROM payment
 INNER JOIN rental
