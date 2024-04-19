@@ -9,10 +9,11 @@ class FromExpr(ChocExpr):
     """ From expression """
     def __init__(
             self,
-            table: Table | str | None = None
+            table: Table | str | None = None,
+            compact: bool = True
     ) -> None:
         self.table = table
-        super().__init__("FROM {table}")
+        super().__init__("FROM {table}", compact=compact)
 
     @property
     def table(self):

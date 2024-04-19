@@ -22,6 +22,9 @@ def gen_random_string(length: int) -> str:
     return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
 
 
-def flatten(lst):
-    """ Flatten a list of list """
-    return [x for row in lst for x in row]
+def str_to_bool(string: str) -> bool:
+    if string == "True":
+        return True
+    elif string == "False":
+        return False
+    raise ValueError(f"Unable to cast {string} to a boolean")

@@ -11,11 +11,12 @@ class Select(ChocExpr):
     def __init__(
             self,
             cols: Iterable[Col | str] | None = None,
-            unique: bool = False
+            unique: bool = False,
+            compact: bool = True
     ) -> None:
         self.cols = cols
         self.unique = unique
-        super().__init__("SELECT @{unique}:DISTINCT(:;@{empty}:*:{$(cols)};@{unique}:):;")
+        super().__init__("SELECT @{unique}:DISTINCT(:;@{empty}:*:{$(cols)};@{unique}:):;", compact=compact)
 
     @property
     def unique(self):

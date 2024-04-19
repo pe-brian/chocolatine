@@ -33,3 +33,26 @@ def test_choc_expr_attr():
     assert ChocExprAttr(box, "$(items).b.c.val").build() == "42, 42, 42"
     assert ChocExprAttr(box, "$(items).b.c.val").build() == "42, 42, 42"
     assert ChocExprAttr(main_box, "$(box.items).b.c.val").build() == "42, 42, 42"
+    assert ChocExprAttr(main_box, "$(box.items).b.c.val~").build() == "42, 42, 42\n"
+
+
+def test_choc_expr_attr_endline():
+
+    class Container:
+        def __init__(self) -> None:
+            self.val = 1
+
+    box = Container()
+
+    assert ChocExprAttr(box, "val~").build() == "1\n"
+
+
+def test_choc_expr_attr_empty_endline():
+
+    class Container:
+        def __init__(self) -> None:
+            self.val = ""
+
+    box = Container()
+
+    assert ChocExprAttr(box, "val~").build() == ""

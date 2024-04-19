@@ -20,11 +20,12 @@ class SelectFrom(ChocExpr):
             self,
             table: str | Table | None = None,
             cols: Iterable[str | Col] | None = None,
-            unique: bool = False
+            unique: bool = False,
+            compact: bool = True
     ) -> None:
-        self._select = Select(cols=cols, unique=unique)
-        self._from_expr = FromExpr(table=table)
-        super().__init__("{select}\n{from_expr}")
+        self._select = Select(cols=cols, unique=unique, compact=compact)
+        self._from_expr = FromExpr(table=table, compact=compact)
+        super().__init__("{select~}{from_expr}", compact=compact)
 
     @property
     def select(self):

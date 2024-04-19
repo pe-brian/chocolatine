@@ -11,10 +11,11 @@ class OrderBy(ChocExpr):
     """ OrderBy expression """
     def __init__(
             self,
-            select: Select
+            select: Select,
+            compact: bool = True
     ) -> None:
         self._select = select
-        super().__init__("ORDER BY {$(cols).ordering_label}")
+        super().__init__("ORDER BY {$(cols).ordering_label}", compact=compact)
 
     @property
     def cols(self) -> Iterable[Col]:

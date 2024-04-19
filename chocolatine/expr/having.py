@@ -9,10 +9,11 @@ class Having(ChocExpr):
     """ Having expression """
     def __init__(
             self,
-            condition: Condition | None = None
+            condition: Condition | None = None,
+            compact: bool = True
     ) -> None:
         self.condition = condition
-        super().__init__("HAVING {condition}")
+        super().__init__("HAVING {condition}", compact=compact)
 
     @property
     def condition(self) -> Condition | None:
