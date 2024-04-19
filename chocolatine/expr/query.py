@@ -23,18 +23,38 @@ class Query(ChocExpr):
     def __init__(
             self,
             compact: bool = True,
-            limit_to: int | None = None,
+            limit: int | None = None,
             table: str | Table | None = None,
-            unique: bool = False
+            unique: bool = False,
+            joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
+            cols: Iterable[str | Col] | None = None,
+            groups: Iterable[str] | None = None,
+            filters: Iterable[Condition] | None = None
     ) -> None:
+        if cols is None:
+            cols = []
+        if joins is None:
+            joins = []
+        if groups is None:
+            groups = []
+        if filters is None:
+            filters = []
         self._select_from = SelectFrom(table=table, unique=unique, compact=False)
         self._order_by = OrderBy(select=self._select_from.select, compact=False)
         self._group_by = GroupBy(compact=False)
-        self._limit = Limit(length=limit_to, compact=False)
+        self._limit = Limit(length=limit, compact=False)
         self._where = Where(compact=False)
         self._having = Having(compact=False)
         self._joins = []
         self._compact = compact
+        if joins:
+            self.join_many(*joins)
+        if cols:
+            self.select(*cols)
+        if groups:
+            self.group_by(*groups)
+        for filter in filters:
+            self.filter(filter)
         super().__init__("{_select_from~}{$(_joins)~}{_where~}{_group_by~}{_having~}{_order_by~}{_limit~}", list_join_sep="\n", compact=compact)
 
     def table(self, val: str | Table | None) -> Self:
