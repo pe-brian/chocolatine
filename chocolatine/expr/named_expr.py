@@ -48,3 +48,7 @@ class NamedExpr(ChocExpr):
     def build(self) -> str:
         """ Build the expression """
         return f"{self._build_full_name()}{self._build_alias()}"
+
+    @property
+    def full_name(self) -> str:
+        return self._build_full_name()

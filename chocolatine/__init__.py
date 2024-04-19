@@ -7,3 +7,4 @@ from .type import Type  # noqa
 from .join_type import JoinType  # noqa
 from .utils import quote_expr  # noqa
 from .shortcut import count, sum, asc, desc, upper, lower, day, month, year  # noqa
+from .query_mode import QueryMode  # noqa
