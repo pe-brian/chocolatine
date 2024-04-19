@@ -2,6 +2,8 @@ from typing import Iterable, Self, Tuple
 
 from typeguard import typechecked
 
+from .assignation import Assignation
+from ..query_mode import QueryMode
 from .join import Join
 from .order_by import OrderBy
 from .group_by import GroupBy
@@ -15,6 +17,7 @@ from ..join_type import JoinType
 from .condition import Condition
 from .col import Col
 from .table import Table
+from .update_set import UpdateSet
 
 
 @typechecked
@@ -22,6 +25,7 @@ class Query(ChocExpr):
     """ Handler to generate a SQL query """
     def __init__(
             self,
+            query_mode: QueryMode = QueryMode.Read,
             compact: bool = True,
             limit: int | None = None,
             table: str | Table | None = None,
@@ -29,7 +33,8 @@ class Query(ChocExpr):
             joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
             cols: Iterable[str | Col] | None = None,
             groups: Iterable[str] | None = None,
-            filters: Iterable[Condition] | None = None
+            filters: Iterable[Condition] | None = None,
+            assignations: Iterable[Assignation] | None = None
     ) -> None:
         if cols is None:
             cols = []
@@ -39,6 +44,13 @@ class Query(ChocExpr):
             groups = []
         if filters is None:
             filters = []
+        if assignations is None:
+            assignations = []
+        if query_mode == QueryMode.Read and assignations:
+            raise ValueError("You cannot have update assignations in read query mode")
+        elif query_mode == QueryMode.Update and cols:
+            raise ValueError("You cannot have update cols in update query mode")
+        self._query_mode = query_mode
         self._select_from = SelectFrom(table=table, unique=unique, compact=False)
         self._order_by = OrderBy(select=self._select_from.select, compact=False)
         self._group_by = GroupBy(compact=False)
@@ -47,15 +59,20 @@ class Query(ChocExpr):
         self._having = Having(compact=False)
         self._joins = []
         self._compact = compact
+        self._update_set = UpdateSet(table=table, assignations=assignations, compact=compact)
         if joins:
             self.join_many(*joins)
-        if cols:
+        if cols and query_mode == QueryMode.Read:
             self.select(*cols)
         if groups:
             self.group_by(*groups)
         for filter in filters:
             self.filter(filter)
-        super().__init__("{_select_from~}{$(_joins)~}{_where~}{_group_by~}{_having~}{_order_by~}{_limit~}", list_join_sep="\n", compact=compact)
+        super().__init__("@{read_mode}:{_select_from~}{$(_joins)~}:{_update_set~};{_where~}@{read_mode}:{_group_by~}{_having~}{_order_by~}{_limit~}:;", list_join_sep="\n", compact=compact)
+
+    @property
+    def read_mode(self) -> bool:
+        return self._query_mode == QueryMode.Read
 
     def table(self, val: str | Table | None) -> Self:
         """ Set the table name """
@@ -65,6 +82,11 @@ class Query(ChocExpr):
     def select(self, *vals: str | Col) -> Self:
         """ Set the selected cols """
         self._select_from.select.cols = vals
+        return self
+
+    def update(self, *assignations: Assignation) -> Self:
+        """ Set the selected cols """
+        self._update_set._set.assignations = assignations
         return self
 
     def distinct(self) -> Self:
