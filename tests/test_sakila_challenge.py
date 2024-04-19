@@ -3,21 +3,23 @@ from chocolatine import Query, Col as _, month, year, sum, count
 
 def test_query_1a():
     """ How to display the first and last names of all actors from the table `actor` ? """
-    assert Query(compact=False) \
-        .table("actor") \
-        .select("first_name", "last_name") \
-        .build() == """\
+    assert str(Query(
+        compact=False,
+        table="actor",
+        cols=("first_name", "last_name"),
+    )) == """\
 SELECT first_name, last_name
 FROM actor
 """
 
 
 def test_query_1b():
-    """ How to display the first and last name of each actor in a single column in upper case letters. Name the column `Actor Name` ? """
-    assert Query(compact=False) \
-        .table("actor") \
-        .select((_("first_name") & " " & _("last_name")).upper().alias("actor_name")) \
-        .build() == """\
+    """ How to display the first and last name of each actor in a single column in upper case letters (name the column `actor_name`) ? """
+    assert str(Query(
+        compact=False,
+        table="actor",
+        cols=((_("first_name") & " " & _("last_name")).upper().alias("actor_name"),)
+    )) == """\
 SELECT UPPER(CONCAT(first_name, ' ', last_name)) AS actor_name
 FROM actor
 """
@@ -25,11 +27,12 @@ FROM actor
 
 def test_query_2a():
     """ How to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." ? """
-    assert Query(compact=False) \
-        .table("actor") \
-        .select("actor_id", "first_name", "last_name") \
-        .filter(_("first_name") == 'Joe') \
-        .build() == """\
+    assert str(Query(
+        compact=False,
+        table="actor",
+        cols=("actor_id", "first_name", "last_name"),
+        filters=(_("first_name") == "Joe",)
+    )) == """\
 SELECT actor_id, first_name, last_name
 FROM actor
 WHERE (first_name = 'Joe')
@@ -38,10 +41,11 @@ WHERE (first_name = 'Joe')
 
 def test_query_2b():
     """ How to find all actors whose last name contain the letters `GEN` ? """
-    assert Query(compact=False) \
-        .table('actor')\
-        .filter(_("last_name").like('%GEN%')) \
-        .build() == """\
+    assert str(Query(
+        compact=False,
+        table="actor",
+        filters=(_("last_name") >> r"%GEN%",)
+    )) == """\
 SELECT *
 FROM actor
 WHERE (last_name LIKE '%GEN%')
@@ -49,12 +53,13 @@ WHERE (last_name LIKE '%GEN%')
 
 
 def test_query_2c():
-    """ How to find all actors whose last names contain the letters `LI`, ordering the rows by last name and first name ? """
-    assert Query(compact=False) \
-        .table("actor")\
-        .select(_("last_name").order(), _("first_name").order())\
-        .filter(_("last_name").like(r'%LI%'))\
-        .build() == """\
+    """ How to find all actors whose last names contain the letters `LI` and ordering the rows by last name and first name ? """
+    assert str(Query(
+        compact=False,
+        table="actor",
+        cols=(">:last_name", ">:first_name",),
+        filters=(_("last_name") >> r"%LI%",),
+    )) == """\
 SELECT last_name, first_name
 FROM actor
 WHERE (last_name LIKE '%LI%')
@@ -63,12 +68,13 @@ ORDER BY last_name ASC, first_name ASC
 
 
 def test_query_2d():
-    """ Using `IN`, display the `country_id` and `country` columns of the following countries Afghanistan, Bangladesh, and China """
-    assert Query(compact=False) \
-        .table('country') \
-        .select('country_id', 'country') \
-        .filter(_('country').isin(('Afghanistan', 'Bangladesh', 'China'))) \
-        .build() == """\
+    """ How to, using `IN`, display the `country_id` and `country` columns of the following countries Afghanistan, Bangladesh, and China ? """
+    assert str(Query(
+        compact=False,
+        table="country",
+        cols=("country_id", "country"),
+        filters=(_("country") << ("Afghanistan", "Bangladesh", "China"),),
+    )) == """\
 SELECT country_id, country
 FROM country
 WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))
@@ -92,12 +98,13 @@ WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))
 # 	DROP COLUMN middle_name;
 
 def test_query_4a():
-    """ List the last names of actors, as well as how many actors have that last name """
-    assert Query(compact=False) \
-        .table("actor") \
-        .select(_('last_name'), _("*").count().alias('count')) \
-        .group_by("last_name") \
-        .build() == """\
+    """ How to list the last names of actors, as well as how many actors have that last name ? """
+    assert str(Query(
+        compact=False,
+        table="actor",
+        cols=("last_name", count().alias("count")),
+        groups=("last_name",),
+    )) == """\
 SELECT last_name, COUNT(*) AS count
 FROM actor
 GROUP BY last_name
@@ -105,13 +112,14 @@ GROUP BY last_name
 
 
 def test_query_4b():
-    """ List last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors """
-    assert Query(compact=False) \
-        .table("actor") \
-        .select(_('last_name'), _("*").count().alias('count')) \
-        .group_by("last_name")\
-        .filter(_('*').count() > 1)\
-        .build() == """\
+    """ How to list last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors ? """
+    assert str(Query(
+        compact=False,
+        table="actor",
+        cols=("last_name", count().alias("count")),
+        groups=("last_name",),
+        filters=(count() > 1,),
+    )) == """\
 SELECT last_name, COUNT(*) AS count
 FROM actor
 GROUP BY last_name
@@ -119,12 +127,12 @@ HAVING (COUNT(*) > 1)
 """
 
 
-# 4c. Oh, no! The actor `HARPO WILLIAMS` was accidentally entered in the `actor` table as `GROUCHO WILLIAMS`, the name of Harpo's
-# second cousin's husbands yoga teacher. Write a query to fix the record.
+# 4c. Oh, no! The actor `HARPO WILLIAMS` was accidentally entered in the `actor` table as `GROUCHO WILLIAMS`, the name of Harpo"s
+# second cousin"s husbands yoga teacher. Write a query to fix the record.
 
 #   UPDATE actor
-#   SET first_name ='HARPO'
-#   WHERE (first_name ='GROUCHO' AND last_name = 'WILLIAMS');
+#   SET first_name ="HARPO"
+#   WHERE (first_name ="GROUCHO" AND last_name = "WILLIAMS");
 
 # 4d. Perhaps we were too hasty in changing `GROUCHO` to `HARPO`. It turns out that `GROUCHO` was the correct name after all! In a
 # single query, if the first name of the actor is currently `HARPO`, change it to `GROUCHO`. Otherwise, change the first name to
@@ -133,9 +141,9 @@ HAVING (COUNT(*) > 1)
 
 #   UPDATE actor
 #   SET first_name =
-#   CASE WHEN first_name = 'HARPO'
-#   THEN 'GROUCHO'
-#   ELSE 'MUCHO GROUCHO'
+#   CASE WHEN first_name = "HARPO"
+#   THEN "GROUCHO"
+#   ELSE "MUCHO GROUCHO"
 #   END
 #   WHERE actor_id = 172;
 
@@ -144,12 +152,13 @@ HAVING (COUNT(*) > 1)
 #   SHOW CREATE TABLE address;
 
 def test_query_6a():
-    """Use `JOIN` to display the first and last names, as well as the address, of each staff member. Use the tables `staff` and `address`:"""
-    assert Query(compact=False)\
-        .table("staff")\
-        .select("first_name", "last_name", "address")\
-        .join("address", "address_id")\
-        .build() == """\
+    """ How to, using `JOIN`, display the first and last names, as well as the address, of each staff member (use the tables `staff` and `address`) ? """
+    assert str(Query(
+        compact=False,
+        table="staff",
+        cols=("first_name", "last_name", "address"),
+        joins=(("address", "address_id"),),
+    )) == """\
 SELECT first_name, last_name, address
 FROM staff
 INNER JOIN address
@@ -158,14 +167,15 @@ USING address_id
 
 
 def test_query_6b():
-    """ Use `JOIN` to display the total amount rung up by each staff member in August of 2005. Use tables `staff` and `payment` """
-    assert Query(compact=False)\
-        .table("staff")\
-        .select("first_name", "last_name", sum("amount"))\
-        .join("payment", "staff_id")\
-        .filter((month("payment_date") == 8) & (year("payment_date") == 2005))\
-        .group_by("staff_id")\
-        .build() == """\
+    """ How to, using `JOIN`, to display the total amount rung up by each staff member in August of 2005 (use tables `staff` and `payment`) ? """
+    assert str(Query(
+        compact=False,
+        table="staff",
+        cols=("first_name", "last_name", sum("amount")),
+        joins=(("payment", "staff_id"),),
+        filters=((month("payment_date") == 8) & (year("payment_date") == 2005),),
+        groups=("staff_id",),
+    )) == """\
 SELECT first_name, last_name, SUM(amount)
 FROM staff
 INNER JOIN payment
@@ -176,13 +186,14 @@ GROUP BY staff_id
 
 
 def test_query_6c():
-    """ List each film and the number of actors who are listed for that film. Use tables `film_actor` and `film`. Use inner join """
-    assert Query(compact=False)\
-        .table("film")\
-        .select("title", count().alias("<:actor_count"))\
-        .join("film_actor", "film_id")\
-        .group_by("title")\
-        .build() == """\
+    """ How to list each film and the number of actors who are listed for that film (use tables `film_actor` and `film` and inner join) ? """
+    assert str(Query(
+        compact=False,
+        table="film",
+        cols=("title", count().alias("<:actor_count")),
+        joins=(("film_actor", "film_id"),),
+        groups=("title",),
+    )) == """\
 SELECT title, COUNT(*) AS actor_count
 FROM film
 INNER JOIN film_actor
@@ -193,15 +204,16 @@ ORDER BY actor_count DESC
 
 
 def test_query_6d():
-    """ How many copies of the film `Hunchback Impossible` exist in the inventory system? """
-    assert Query(compact=False)\
-        .table("film")\
-        .select("title", count().alias("Number_of_copies"))\
-        .filter(_("title") == "Hunchback Impossible")\
-        .join("inventory", "film_id")\
-        .group_by("title")\
-        .build() == """\
-SELECT title, COUNT(*) AS Number_of_copies
+    """ How many copies of the film `Hunchback Impossible` exist in the inventory system ? """
+    assert str(Query(
+        compact=False,
+        table="film",
+        cols=("title", count().alias("copies_count")),
+        filters=(_("title") == "Hunchback Impossible",),
+        joins=(("inventory", "film_id"),),
+        groups=("title",)
+    )) == """\
+SELECT title, COUNT(*) AS copies_count
 FROM film
 INNER JOIN inventory
 USING film_id
@@ -211,13 +223,14 @@ GROUP BY title
 
 
 def test_query_6e():
-    """ Using the tables `payment` and `customer` and the `JOIN` command, list the total paid by each customer. List the customers """
-    assert Query(compact=False)\
-        .table("customer")\
-        .select(">:last_name", "first_name", sum("amount").alias("total_paid_amount"))\
-        .join("payment", "customer_id")\
-        .group_by("last_name")\
-        .build() == """\
+    """ How to, using the tables `payment` and `customer` and the `JOIN` command, list the total paid by each customer ? """
+    assert str(Query(
+        compact=False,
+        table="customer",
+        cols=(">:last_name", "first_name", sum("amount").alias("total_paid_amount")),
+        joins=(("payment", "customer_id"),),
+        groups=("last_name",)
+    )) == """\
 SELECT last_name, first_name, SUM(amount) AS total_paid_amount
 FROM customer
 INNER JOIN payment
@@ -228,14 +241,19 @@ ORDER BY last_name ASC
 
 
 def test_query_7a():
-    """ The music of Queen and Kris Kristofferson have seen an unlikely resurgence. As an unintended consequence, films starting with
-        the letters `K` and `Q` have also soared in popularity. Use subqueries to display the titles of movies starting with the letters
-        `K` and `Q` whose language is English. """
-    assert Query(compact=False)\
-        .table("film")\
-        .select("title")\
-        .filter(((_("title") >> "K%") | (_("title") >> "Q%")) & (_("language_id") << Query(table="language").select("language_id").filter(_("name") == "English")))\
-        .build() == """\
+    """ How to, using subqueries, display the titles of movies starting with the letters `K` and `Q` whose language is English ? """
+    assert str(Query(
+        compact=False,
+        table="film",
+        cols=("title",),
+        filters=(
+            ((_("title") >> "K%") | (_("title") >> "Q%")) & _("language_id") << Query(
+                table="language",
+                cols=("language_id",),
+                filters=(_("name") == "English",),
+            ),
+        )
+    )) == """\
 SELECT title
 FROM film
 WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN (SELECT language_id FROM language WHERE (name = 'English'))))
@@ -243,14 +261,25 @@ WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN (SELECT lang
 
 
 def test_query_7b():
-    """Use subqueries to display all actors who appear in the film `Alone Trip"""
-    assert Query(compact=False)\
-        .table("actor")\
-        .select("first_name", "last_name")\
-        .filter(_("actor_id").isin(
-            Query(table="film_actor").select("actor_id").filter(_("film_id").isin(
-                Query(table="film").select("film_id").filter(_("title") == 'Alone Trip')))))\
-        .build() == """\
+    """ How to, using subqueries, display all actors who appear in the film `Alone Trip ? """
+    assert str(Query(
+        compact=False,
+        table="actor",
+        cols=("first_name", "last_name"),
+        filters=(
+            _("actor_id") << Query(
+                table="film_actor",
+                cols=("actor_id",),
+                filters=(
+                    _("film_id") << Query(
+                        table="film",
+                        cols=("film_id",),
+                        filters=(_("title") == "Alone Trip",)
+                    ),
+                ),
+            ),
+        )
+    )) == """\
 SELECT first_name, last_name
 FROM actor
 WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT film_id FROM film WHERE (title = 'Alone Trip')))))
@@ -258,16 +287,14 @@ WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT fi
 
 
 def test_query_7c():
-    """You want to run an email marketing campaign in Canada, for which you will need the names and email addresses of all Canadian
-    customers. Use joins to retrieve this information."""
-    assert Query(compact=False)\
-        .select("first_name", "last_name", "email")\
-        .table("customer")\
-        .join("address", "address_id")\
-        .join("city", "city_id")\
-        .join("country", "country_id")\
-        .filter(_("country") == 'canada')\
-        .build() == """\
+    """ How to, knowing you want to run an email marketing campaign in Canada, for which you will need the names and email addresses of all Canadian customers, retrieve this information (use joins) ? """
+    assert str(Query(
+        compact=False,
+        cols=("first_name", "last_name", "email"),
+        table="customer",
+        joins=(("address", "address_id"), ("city", "city_id"), ("country", "country_id")),
+        filters=(_("country") == "canada",)
+    )) == """\
 SELECT first_name, last_name, email
 FROM customer
 INNER JOIN address
@@ -281,15 +308,14 @@ WHERE (country = 'canada')
 
 
 def test_query_7d():
-    """Sales have been lagging among young families, and you wish to target all family movies for a promotion. Identify all movies
-    categorized as family films."""
-    assert Query(compact=False)\
-        .table("film")\
-        .select("title", "name")\
-        .join("film_category", "film_id")\
-        .join("category", "category_id")\
-        .filter(_('name') == 'family')\
-        .build() == """\
+    """ How to identify all movies categorized as family films ? """
+    assert str(Query(
+        compact=False,
+        table="film",
+        cols=("title", "name"),
+        joins=(("film_category", "film_id"), ("category", "category_id")),
+        filters=(_("name") == "family",),
+    )) == """\
 SELECT title, name
 FROM film
 INNER JOIN film_category
@@ -301,15 +327,14 @@ WHERE (name = 'family')
 
 
 def test_query_7e():
-    """Display the most frequently rented movies in descending order.
-    """
-    assert Query(compact=False)\
-        .table("film")\
-        .select('title', count().alias('<:rentals'))\
-        .join("inventory", 'film_id')\
-        .join("rental", "inventory_id")\
-        .group_by("title")\
-        .build() == """\
+    """ How to display the most frequently rented movies in descending order ? """
+    assert str(Query(
+        compact=False,
+        table="film",
+        cols=("title", count().alias("<:rentals")),
+        joins=(("inventory", "film_id"), ("rental", "inventory_id")),
+        groups=("title",)
+    )) == """\
 SELECT title, COUNT(*) AS rentals
 FROM film
 INNER JOIN inventory
@@ -323,14 +348,13 @@ ORDER BY rentals DESC
 
 def test_query_7f():
     """ How much business, in dollars, each store brought in ? """
-    assert Query(compact=False)\
-        .table("payment")\
-        .select('store_id', sum('amount').alias('revenue'))\
-        .join('rental', 'rental_id')\
-        .join('inventory', "inventory_id")\
-        .join("store", "store_id")\
-        .group_by("store_id")\
-        .build() == """\
+    assert str(Query(
+        compact=False,
+        table="payment",
+        cols=("store_id", sum("amount").alias("revenue")),
+        joins=(("rental", "rental_id"), ("inventory", "inventory_id"), ("store", "store_id")),
+        groups=("store_id",)
+    )) == """\
 SELECT store_id, SUM(amount) AS revenue
 FROM payment
 INNER JOIN rental
@@ -345,13 +369,12 @@ GROUP BY store_id
 
 def test_query_7g():
     """ How to display for each store its store ID, city, and country ? """
-    assert Query(compact=False)\
-        .table("store")\
-        .select('store_id', 'city', 'country')\
-        .join('address', 'address_id')\
-        .join('city', 'city_id')\
-        .join('country', 'country_id')\
-        .build() == """\
+    assert str(Query(
+        compact=False,
+        table="store",
+        cols=("store_id", "city", "country"),
+        joins=(("address", "address_id"), ("city", "city_id"), ("country", "country_id")),
+    )) == """\
 SELECT store_id, city, country
 FROM store
 INNER JOIN address
@@ -364,16 +387,14 @@ USING country_id
 
 
 def test_query_7h():
-    """List the top five genres in gross revenue in descending order. (**Hint**: you may need to use the following tables: category,
-    film_category, inventory, payment, and rental.)"""
-    assert Query(compact=False)\
-        .table("payment")\
-        .select(sum('amount').alias('total_amount'), 'name')\
-        .join('rental', 'rental_id')\
-        .join('inventory', 'inventory_id')\
-        .join('category', 'category_id')\
-        .group_by('name'), sum('amount')\
-        .build() == """\
+    """ List the top five genres in gross revenue in descending order (use the tables category, film_category, inventory, payment, and rental) ? """
+    assert str(Query(
+        compact=False,
+        table="payment",
+        cols=(sum("amount").alias("<:total_amount"), "name"),
+        joins=(("rental", "rental_id"), ("inventory", "inventory_id"), ("category", "category_id")),
+        groups=("name",)
+    )) == """\
 SELECT SUM(amount) AS total_amount, name
 FROM payment
 INNER JOIN rental
@@ -391,7 +412,7 @@ ORDER BY total_amount DESC
 # solution from the problem above to create a view. If you havent solved 7h, you can substitute another query to create a view.
 
 #   CREATE VIEW top_five_genres AS
-#   SELECT SUM(amount) AS 'Total Sales', c.name AS 'Genre'
+#   SELECT SUM(amount) AS "Total Sales", c.name AS "Genre"
 #   FROM payment p
 #   JOIN rental r
 #   ON (p.rental_id = r.rental_id)
