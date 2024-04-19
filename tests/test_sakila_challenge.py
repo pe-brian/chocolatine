@@ -18,7 +18,7 @@ def test_query_1b():
         .table("actor") \
         .select((_("first_name") & " " & _("last_name")).upper().alias("actor_name")) \
         .build() == """\
-SELECT UPPER(CONCAT(first_name, ' ', last_name)) AS actor_name
+SELECT UPPER(CONCAT(first_name, " ", last_name)) AS actor_name
 FROM actor
 """
 
@@ -28,23 +28,23 @@ def test_query_2a():
     assert Query(compact=False) \
         .table("actor") \
         .select("actor_id", "first_name", "last_name") \
-        .filter(_("first_name") == 'Joe') \
+        .filter(_("first_name") == "Joe") \
         .build() == """\
 SELECT actor_id, first_name, last_name
 FROM actor
-WHERE (first_name = 'Joe')
+WHERE (first_name = "Joe")
 """
 
 
 def test_query_2b():
     """ How to find all actors whose last name contain the letters `GEN` ? """
     assert Query(compact=False) \
-        .table('actor')\
-        .filter(_("last_name").like(r'%GEN%')) \
+        .table("actor")\
+        .filter(_("last_name").like(r"%GEN%")) \
         .build() == """\
 SELECT *
 FROM actor
-WHERE (last_name LIKE '%GEN%')
+WHERE (last_name LIKE "%GEN%")
 """
 
 
@@ -53,11 +53,11 @@ def test_query_2c():
     assert Query(compact=False) \
         .table("actor")\
         .select(_("last_name").order(), _("first_name").order())\
-        .filter(_("last_name").like(r'%LI%'))\
+        .filter(_("last_name").like(r"%LI%"))\
         .build() == """\
 SELECT last_name, first_name
 FROM actor
-WHERE (last_name LIKE '%LI%')
+WHERE (last_name LIKE "%LI%")
 ORDER BY last_name ASC, first_name ASC
 """
 
@@ -65,13 +65,13 @@ ORDER BY last_name ASC, first_name ASC
 def test_query_2d():
     """ How to, using `IN`, display the `country_id` and `country` columns of the following countries Afghanistan, Bangladesh, and China ? """
     assert Query(compact=False) \
-        .table('country') \
-        .select('country_id', 'country') \
-        .filter(_('country').isin(('Afghanistan', 'Bangladesh', 'China'))) \
+        .table("country") \
+        .select("country_id", "country") \
+        .filter(_("country").isin(("Afghanistan", "Bangladesh", "China"))) \
         .build() == """\
 SELECT country_id, country
 FROM country
-WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))
+WHERE (country IN ("Afghanistan", "Bangladesh", "China"))
 """
 
 
@@ -95,7 +95,7 @@ def test_query_4a():
     """ How to list the last names of actors, as well as how many actors have that last name ? """
     assert Query(compact=False) \
         .table("actor") \
-        .select(_('last_name'), _("*").count().alias('count')) \
+        .select(_("last_name"), _("*").count().alias("count")) \
         .group_by("last_name") \
         .build() == """\
 SELECT last_name, COUNT(*) AS count
@@ -108,9 +108,9 @@ def test_query_4b():
     """ How to list last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors ? """
     assert Query(compact=False) \
         .table("actor") \
-        .select(_('last_name'), _("*").count().alias('count')) \
+        .select(_("last_name"), _("*").count().alias("count")) \
         .group_by("last_name")\
-        .filter(_('*').count() > 1)\
+        .filter(_("*").count() > 1)\
         .build() == """\
 SELECT last_name, COUNT(*) AS count
 FROM actor
@@ -119,12 +119,12 @@ HAVING (COUNT(*) > 1)
 """
 
 
-# 4c. Oh, no! The actor `HARPO WILLIAMS` was accidentally entered in the `actor` table as `GROUCHO WILLIAMS`, the name of Harpo's
-# second cousin's husbands yoga teacher. Write a query to fix the record.
+# 4c. Oh, no! The actor `HARPO WILLIAMS` was accidentally entered in the `actor` table as `GROUCHO WILLIAMS`, the name of Harpo"s
+# second cousin"s husbands yoga teacher. Write a query to fix the record.
 
 #   UPDATE actor
-#   SET first_name ='HARPO'
-#   WHERE (first_name ='GROUCHO' AND last_name = 'WILLIAMS');
+#   SET first_name ="HARPO"
+#   WHERE (first_name ="GROUCHO" AND last_name = "WILLIAMS");
 
 # 4d. Perhaps we were too hasty in changing `GROUCHO` to `HARPO`. It turns out that `GROUCHO` was the correct name after all! In a
 # single query, if the first name of the actor is currently `HARPO`, change it to `GROUCHO`. Otherwise, change the first name to
@@ -133,9 +133,9 @@ HAVING (COUNT(*) > 1)
 
 #   UPDATE actor
 #   SET first_name =
-#   CASE WHEN first_name = 'HARPO'
-#   THEN 'GROUCHO'
-#   ELSE 'MUCHO GROUCHO'
+#   CASE WHEN first_name = "HARPO"
+#   THEN "GROUCHO"
+#   ELSE "MUCHO GROUCHO"
 #   END
 #   WHERE actor_id = 172;
 
@@ -205,7 +205,7 @@ SELECT title, COUNT(*) AS Number_of_copies
 FROM film
 INNER JOIN inventory
 USING film_id
-WHERE (title = 'Hunchback Impossible')
+WHERE (title = "Hunchback Impossible")
 GROUP BY title
 """
 
@@ -236,7 +236,7 @@ def test_query_7a():
         .build() == """\
 SELECT title
 FROM film
-WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN (SELECT language_id FROM language WHERE (name = 'English'))))
+WHERE (((title LIKE "K%") OR (title LIKE "Q%")) AND (language_id IN (SELECT language_id FROM language WHERE (name = "English"))))
 """
 
 
@@ -247,11 +247,11 @@ def test_query_7b():
         .select("first_name", "last_name")\
         .filter(_("actor_id").isin(
             Query(table="film_actor").select("actor_id").filter(_("film_id").isin(
-                Query(table="film").select("film_id").filter(_("title") == 'Alone Trip')))))\
+                Query(table="film").select("film_id").filter(_("title") == "Alone Trip")))))\
         .build() == """\
 SELECT first_name, last_name
 FROM actor
-WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT film_id FROM film WHERE (title = 'Alone Trip')))))
+WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT film_id FROM film WHERE (title = "Alone Trip")))))
 """
 
 
@@ -260,10 +260,8 @@ def test_query_7c():
     assert Query(compact=False)\
         .select("first_name", "last_name", "email")\
         .table("customer")\
-        .join("address", "address_id")\
-        .join("city", "city_id")\
-        .join("country", "country_id")\
-        .filter(_("country") == 'canada')\
+        .join_many(("address", "address_id"), ("city", "city_id"), ("country", "country_id"))\
+        .filter(_("country") == "canada")\
         .build() == """\
 SELECT first_name, last_name, email
 FROM customer
@@ -273,7 +271,7 @@ INNER JOIN city
 USING city_id
 INNER JOIN country
 USING country_id
-WHERE (country = 'canada')
+WHERE (country = "canada")
 """
 
 
@@ -282,9 +280,8 @@ def test_query_7d():
     assert Query(compact=False)\
         .table("film")\
         .select("title", "name")\
-        .join("film_category", "film_id")\
-        .join("category", "category_id")\
-        .filter(_('name') == 'family')\
+        .join_many(("film_category", "film_id"), ("category", "category_id"))\
+        .filter(_("name") == "family")\
         .build() == """\
 SELECT title, name
 FROM film
@@ -292,7 +289,7 @@ INNER JOIN film_category
 USING film_id
 INNER JOIN category
 USING category_id
-WHERE (name = 'family')
+WHERE (name = "family")
 """
 
 
@@ -300,9 +297,8 @@ def test_query_7e():
     """ How to display the most frequently rented movies in descending order ? """
     assert Query(compact=False)\
         .table("film")\
-        .select('title', count().alias('<:rentals'))\
-        .join("inventory", 'film_id')\
-        .join("rental", "inventory_id")\
+        .select("title", count().alias("<:rentals"))\
+        .join_many(("inventory", "film_id"), ("rental", "inventory_id"))\
         .group_by("title")\
         .build() == """\
 SELECT title, COUNT(*) AS rentals
@@ -320,10 +316,8 @@ def test_query_7f():
     """ How much business, in dollars, each store brought in ? """
     assert Query(compact=False)\
         .table("payment")\
-        .select('store_id', sum('amount').alias('revenue'))\
-        .join('rental', 'rental_id')\
-        .join('inventory', "inventory_id")\
-        .join("store", "store_id")\
+        .select("store_id", sum("amount").alias("revenue"))\
+        .join_many(("rental", "rental_id"), ("inventory", "inventory_id"), ("store", "store_id"))\
         .group_by("store_id")\
         .build() == """\
 SELECT store_id, SUM(amount) AS revenue
@@ -342,10 +336,8 @@ def test_query_7g():
     """ How to display for each store its store ID, city, and country ? """
     assert Query(compact=False)\
         .table("store")\
-        .select('store_id', 'city', 'country')\
-        .join('address', 'address_id')\
-        .join('city', 'city_id')\
-        .join('country', 'country_id')\
+        .select("store_id", "city", "country")\
+        .join_many(("address", "address_id"), ("city", "city_id"), ("country", "country_id"))\
         .build() == """\
 SELECT store_id, city, country
 FROM store
@@ -362,11 +354,9 @@ def test_query_7h():
     """ List the top five genres in gross revenue in descending order (use the tables category, film_category, inventory, payment, and rental) ? """
     assert Query(compact=False)\
         .table("payment")\
-        .select(sum('amount').alias('total_amount'), 'name')\
-        .join('rental', 'rental_id')\
-        .join('inventory', 'inventory_id')\
-        .join('category', 'category_id')\
-        .group_by('name'), sum('amount')\
+        .select(sum("amount").alias("total_amount"), "name")\
+        .join_many(("rental", "rental_id"), ("inventory", "inventory_id"), ("category", "category_id"))\
+        .group_by("name"), sum("amount")\
         .build() == """\
 SELECT SUM(amount) AS total_amount, name
 FROM payment
@@ -385,7 +375,7 @@ ORDER BY total_amount DESC
 # solution from the problem above to create a view. If you havent solved 7h, you can substitute another query to create a view.
 
 #   CREATE VIEW top_five_genres AS
-#   SELECT SUM(amount) AS 'Total Sales', c.name AS 'Genre'
+#   SELECT SUM(amount) AS "Total Sales", c.name AS "Genre"
 #   FROM payment p
 #   JOIN rental r
 #   ON (p.rental_id = r.rental_id)

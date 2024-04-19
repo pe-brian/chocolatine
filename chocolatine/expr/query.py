@@ -1,4 +1,4 @@
-from typing import Iterable, Self
+from typing import Iterable, Self, Tuple
 
 from typeguard import typechecked
 
@@ -72,4 +72,9 @@ class Query(ChocExpr):
 
     def join(self, table: str | Table, condition: Condition | str | Iterable[str], join_type: JoinType | None = JoinType.Inner) -> Self:
         self._joins.append(Join(table=table if isinstance(table, Table) else Table(name=table), condition=condition, join_type=join_type, compact=self._compact))
+        return self
+
+    def join_many(self, *joins_params: Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]) -> Self:
+        for join_params in joins_params:
+            self.join(*join_params)
         return self
