@@ -18,8 +18,8 @@ from .table import Table
 
 
 @typechecked
-class Request(ChocExpr):
-    """ Handler to generate a SQL request """
+class Query(ChocExpr):
+    """ Handler to generate a SQL query """
     def __init__(
             self,
             compact: bool = True,

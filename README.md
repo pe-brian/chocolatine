@@ -2,7 +2,7 @@
 
 ![Image](logo.jpg)
 
-Chocolatine is a lightweight python library designed to easily generate SQL request.
+Chocolatine is a lightweight python library designed to easily generate SQL query.
 
 # Why Chocolatine ?
 
@@ -13,9 +13,9 @@ Of course, there are many other open source projects to do that, but honestly, t
 
 __Concatenation & filtering__ :
 ```python
-from chocolatine import Request, Col as _
+from chocolatine import Query, Col as _
 
-req = Request().table("customer")\
+req = Query().table("customer")\
                .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
                .filter(_("first_name").like("%E"))
 print(req)
@@ -28,9 +28,9 @@ WHERE first_name LIKE '%E'
 
 __Group by, aggregation & filtering__ :
 ```python
-from chocolatine import Request, sum, Col as _
+from chocolatine import Query, sum, Col as _
 
-req = Request().table("payment")\
+req = Query().table("payment")\
                .select("customer_id", count().alias("payment_count"), sum("amount").alias("total_amount").order())\
                .group_by("customer_id")\
                .filter(count() > 1 & sum("amount") > 5.00)\
@@ -48,9 +48,9 @@ ORDER BY total_amount
 
 __Join__ :
 ```python
-from chocolatine import Request, Col as _
+from chocolatine import Query, Col as _
 
-req = Request().table("film")\
+req = Query().table("film")\
                .select("title", "film_id", _("first_name") & " " & _("last_name"))\
                .join("film_actor", "film_id")\
                .join("actor", "actor_id")\
@@ -133,7 +133,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 ```docker run -p 3306:3306 -d sakiladb/mysql:latest```
 
-# Use Chocolatine to directly request your mySQL database
+# Use Chocolatine to directly query your mySQL database
 
 Take a look at : `scratch.py`
 

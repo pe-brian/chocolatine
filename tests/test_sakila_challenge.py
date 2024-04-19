@@ -1,9 +1,9 @@
-from chocolatine import Request, Col as _, month, year, sum, count
+from chocolatine import Query, Col as _, month, year, sum, count
 
 
-def test_request_1a():
+def test_query_1a():
     """ How to display the first and last names of all actors from the table `actor` ? """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table("actor") \
         .select("first_name", "last_name") \
         .build() == """\
@@ -12,9 +12,9 @@ FROM actor
 """
 
 
-def test_request_1b():
+def test_query_1b():
     """ How to display the first and last name of each actor in a single column in upper case letters. Name the column `Actor Name` ? """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table("actor") \
         .select((_("first_name") & " " & _("last_name")).upper().alias("actor_name")) \
         .build() == """\
@@ -23,9 +23,9 @@ FROM actor
 """
 
 
-def test_request_2a():
+def test_query_2a():
     """ How to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." ? """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table("actor") \
         .select("actor_id", "first_name", "last_name") \
         .filter(_("first_name") == 'Joe') \
@@ -36,9 +36,9 @@ WHERE (first_name = 'Joe')
 """
 
 
-def test_request_2b():
+def test_query_2b():
     """ How to find all actors whose last name contain the letters `GEN` ? """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table('actor')\
         .filter(_("last_name").like('%GEN%')) \
         .build() == """\
@@ -48,9 +48,9 @@ WHERE (last_name LIKE '%GEN%')
 """
 
 
-def test_request_2c():
+def test_query_2c():
     """ How to find all actors whose last names contain the letters `LI`, ordering the rows by last name and first name ? """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table("actor")\
         .select(_("last_name").order(), _("first_name").order())\
         .filter(_("last_name").like(r'%LI%'))\
@@ -62,9 +62,9 @@ ORDER BY last_name ASC, first_name ASC
 """
 
 
-def test_request_2d():
+def test_query_2d():
     """ Using `IN`, display the `country_id` and `country` columns of the following countries Afghanistan, Bangladesh, and China """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table('country') \
         .select('country_id', 'country') \
         .filter(_('country').isin(('Afghanistan', 'Bangladesh', 'China'))) \
@@ -91,9 +91,9 @@ WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))
 #   ALTER TABLE actor
 # 	DROP COLUMN middle_name;
 
-def test_request_4a():
+def test_query_4a():
     """ List the last names of actors, as well as how many actors have that last name """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table("actor") \
         .select(_('last_name'), _("*").count().alias('count')) \
         .group_by("last_name") \
@@ -104,9 +104,9 @@ GROUP BY last_name
 """
 
 
-def test_request_4b():
+def test_query_4b():
     """ List last names of actors and the number of actors who have that last name, but only for names that are shared by at least two actors """
-    assert Request(compact=False) \
+    assert Query(compact=False) \
         .table("actor") \
         .select(_('last_name'), _("*").count().alias('count')) \
         .group_by("last_name")\
@@ -143,9 +143,9 @@ HAVING (COUNT(*) > 1)
 
 #   SHOW CREATE TABLE address;
 
-def test_request_6a():
+def test_query_6a():
     """Use `JOIN` to display the first and last names, as well as the address, of each staff member. Use the tables `staff` and `address`:"""
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("staff")\
         .select("first_name", "last_name", "address")\
         .join("address", "address_id")\
@@ -157,9 +157,9 @@ USING address_id
 """
 
 
-def test_request_6b():
+def test_query_6b():
     """ Use `JOIN` to display the total amount rung up by each staff member in August of 2005. Use tables `staff` and `payment` """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("staff")\
         .select("first_name", "last_name", sum("amount"))\
         .join("payment", "staff_id")\
@@ -175,9 +175,9 @@ GROUP BY staff_id
 """
 
 
-def test_request_6c():
+def test_query_6c():
     """ List each film and the number of actors who are listed for that film. Use tables `film_actor` and `film`. Use inner join """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("film")\
         .select("title", count().alias("<:actor_count"))\
         .join("film_actor", "film_id")\
@@ -192,9 +192,9 @@ ORDER BY actor_count DESC
 """
 
 
-def test_request_6d():
+def test_query_6d():
     """ How many copies of the film `Hunchback Impossible` exist in the inventory system? """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("film")\
         .select("title", count().alias("Number_of_copies"))\
         .filter(_("title") == "Hunchback Impossible")\
@@ -210,9 +210,9 @@ GROUP BY title
 """
 
 
-def test_request_6e():
+def test_query_6e():
     """ Using the tables `payment` and `customer` and the `JOIN` command, list the total paid by each customer. List the customers """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("customer")\
         .select(">:last_name", "first_name", sum("amount").alias("total_paid_amount"))\
         .join("payment", "customer_id")\
@@ -227,14 +227,14 @@ ORDER BY last_name ASC
 """
 
 
-def test_request_7a():
+def test_query_7a():
     """ The music of Queen and Kris Kristofferson have seen an unlikely resurgence. As an unintended consequence, films starting with
         the letters `K` and `Q` have also soared in popularity. Use subqueries to display the titles of movies starting with the letters
         `K` and `Q` whose language is English. """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("film")\
         .select("title")\
-        .filter(((_("title") >> "K%") | (_("title") >> "Q%")) & (_("language_id") << Request(table="language").select("language_id").filter(_("name") == "English")))\
+        .filter(((_("title") >> "K%") | (_("title") >> "Q%")) & (_("language_id") << Query(table="language").select("language_id").filter(_("name") == "English")))\
         .build() == """\
 SELECT title
 FROM film
@@ -242,14 +242,14 @@ WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN (SELECT lang
 """
 
 
-def test_request_7b():
+def test_query_7b():
     """Use subqueries to display all actors who appear in the film `Alone Trip"""
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("actor")\
         .select("first_name", "last_name")\
         .filter(_("actor_id").isin(
-            Request(table="film_actor").select("actor_id").filter(_("film_id").isin(
-                Request(table="film").select("film_id").filter(_("title") == 'Alone Trip')))))\
+            Query(table="film_actor").select("actor_id").filter(_("film_id").isin(
+                Query(table="film").select("film_id").filter(_("title") == 'Alone Trip')))))\
         .build() == """\
 SELECT first_name, last_name
 FROM actor
@@ -257,10 +257,10 @@ WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT fi
 """
 
 
-def test_request_7c():
+def test_query_7c():
     """You want to run an email marketing campaign in Canada, for which you will need the names and email addresses of all Canadian
     customers. Use joins to retrieve this information."""
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .select("first_name", "last_name", "email")\
         .table("customer")\
         .join("address", "address_id")\
@@ -280,10 +280,10 @@ WHERE (country = 'canada')
 """
 
 
-def test_request_7d():
+def test_query_7d():
     """Sales have been lagging among young families, and you wish to target all family movies for a promotion. Identify all movies
     categorized as family films."""
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("film")\
         .select("title", "name")\
         .join("film_category", "film_id")\
@@ -300,10 +300,10 @@ WHERE (name = 'family')
 """
 
 
-def test_request_7e():
+def test_query_7e():
     """Display the most frequently rented movies in descending order.
     """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("film")\
         .select('title', count().alias('<:rentals'))\
         .join("inventory", 'film_id')\
@@ -321,9 +321,9 @@ ORDER BY rentals DESC
 """
 
 
-def test_request_7f():
+def test_query_7f():
     """ How much business, in dollars, each store brought in ? """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("payment")\
         .select('store_id', sum('amount').alias('revenue'))\
         .join('rental', 'rental_id')\
@@ -343,9 +343,9 @@ GROUP BY store_id
 """
 
 
-def test_request_7g():
+def test_query_7g():
     """ How to display for each store its store ID, city, and country ? """
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("store")\
         .select('store_id', 'city', 'country')\
         .join('address', 'address_id')\
@@ -363,10 +363,10 @@ USING country_id
 """
 
 
-def test_request_7h():
+def test_query_7h():
     """List the top five genres in gross revenue in descending order. (**Hint**: you may need to use the following tables: category,
     film_category, inventory, payment, and rental.)"""
-    assert Request(compact=False)\
+    assert Query(compact=False)\
         .table("payment")\
         .select(sum('amount').alias('total_amount'), 'name')\
         .join('rental', 'rental_id')\
