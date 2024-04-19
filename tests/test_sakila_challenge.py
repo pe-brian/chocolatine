@@ -1,30 +1,30 @@
 from chocolatine import Request, Col as _, month, year, sum, count
 
+
 def test_request_1a():
-    """ Display the first and last names of all actors from the table `actor` """
+    """ How to display the first and last names of all actors from the table `actor` ? """
     assert Request(compact=False) \
         .table("actor") \
         .select("first_name", "last_name") \
         .build() == """\
 SELECT first_name, last_name
-FROM actor\
+FROM actor
 """
 
 
 def test_request_1b():
-    """ Display the first and last name of each actor in a single column in upper case letters. Name the column `Actor Name` """
+    """ How to display the first and last name of each actor in a single column in upper case letters. Name the column `Actor Name` ? """
     assert Request(compact=False) \
         .table("actor") \
         .select((_("first_name") & " " & _("last_name")).upper().alias("actor_name")) \
         .build() == """\
 SELECT UPPER(CONCAT(first_name, ' ', last_name)) AS actor_name
-FROM actor\
+FROM actor
 """
 
 
 def test_request_2a():
-    """ You need to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." What is
-        one query would you use to obtain this information ? """
+    """ How to find the ID number, first name, and last name of an actor, of whom you know only the first name, "Joe." ? """
     assert Request(compact=False) \
         .table("actor") \
         .select("actor_id", "first_name", "last_name") \
@@ -32,24 +32,24 @@ def test_request_2a():
         .build() == """\
 SELECT actor_id, first_name, last_name
 FROM actor
-WHERE (first_name = 'Joe')\
+WHERE (first_name = 'Joe')
 """
 
 
 def test_request_2b():
-    """ Find all actors whose last name contain the letters `GEN` """
+    """ How to find all actors whose last name contain the letters `GEN` ? """
     assert Request(compact=False) \
         .table('actor')\
         .filter(_("last_name").like('%GEN%')) \
         .build() == """\
 SELECT *
 FROM actor
-WHERE (last_name LIKE '%GEN%')\
+WHERE (last_name LIKE '%GEN%')
 """
 
 
 def test_request_2c():
-    """ Find all actors whose last names contain the letters `LI`. This time, order the rows by last name and first name, in that order:"""
+    """ How to find all actors whose last names contain the letters `LI`, ordering the rows by last name and first name ? """
     assert Request(compact=False) \
         .table("actor")\
         .select(_("last_name").order(), _("first_name").order())\
@@ -58,7 +58,7 @@ def test_request_2c():
 SELECT last_name, first_name
 FROM actor
 WHERE (last_name LIKE '%LI%')
-ORDER BY last_name ASC, first_name ASC\
+ORDER BY last_name ASC, first_name ASC
 """
 
 
@@ -71,7 +71,7 @@ def test_request_2d():
         .build() == """\
 SELECT country_id, country
 FROM country
-WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))\
+WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))
 """
 
 
@@ -100,7 +100,7 @@ def test_request_4a():
         .build() == """\
 SELECT last_name, COUNT(*) AS count
 FROM actor
-GROUP BY last_name\
+GROUP BY last_name
 """
 
 
@@ -115,7 +115,7 @@ def test_request_4b():
 SELECT last_name, COUNT(*) AS count
 FROM actor
 GROUP BY last_name
-HAVING (COUNT(*) > 1)\
+HAVING (COUNT(*) > 1)
 """
 
 
@@ -146,55 +146,55 @@ HAVING (COUNT(*) > 1)\
 def test_request_6a():
     """Use `JOIN` to display the first and last names, as well as the address, of each staff member. Use the tables `staff` and `address`:"""
     assert Request(compact=False)\
-        .table("staff:s")\
-        .select("s.first_name", "s.last_name", "a.address")\
-        .join("address:a", "address_id")\
+        .table("staff")\
+        .select("first_name", "last_name", "address")\
+        .join("address", "address_id")\
         .build() == """\
-SELECT s.first_name, s.last_name, a.address
-FROM staff AS s
-INNER JOIN address AS a
-ON (a.address_id = s.address_id)\
+SELECT first_name, last_name, address
+FROM staff
+INNER JOIN address
+USING address_id
 """
 
 
 def test_request_6b():
     """ Use `JOIN` to display the total amount rung up by each staff member in August of 2005. Use tables `staff` and `payment` """
     assert Request(compact=False)\
-        .table("staff:s")\
-        .select("s.first_name", "s.last_name", sum("p.amount"))\
-        .join("payment:p", "staff_id")\
-        .filter((month("p.payment_date") == 8) & (year("p.payment_date") == 2005))\
-        .group_by("s.staff_id")\
+        .table("staff")\
+        .select("first_name", "last_name", sum("amount"))\
+        .join("payment", "staff_id")\
+        .filter((month("payment_date") == 8) & (year("payment_date") == 2005))\
+        .group_by("staff_id")\
         .build() == """\
-SELECT s.first_name, s.last_name, SUM(p.amount)
-FROM staff AS s
-INNER JOIN payment AS p
-ON (p.staff_id = s.staff_id)
-WHERE ((MONTH(p.payment_date) = 8) AND (YEAR(p.payment_date) = 2005))
-GROUP BY s.staff_id\
+SELECT first_name, last_name, SUM(amount)
+FROM staff
+INNER JOIN payment
+USING staff_id
+WHERE ((MONTH(payment_date) = 8) AND (YEAR(payment_date) = 2005))
+GROUP BY staff_id
 """
 
 
 def test_request_6c():
     """ List each film and the number of actors who are listed for that film. Use tables `film_actor` and `film`. Use inner join """
     assert Request(compact=False)\
-        .table("film:f")\
-        .select("f.title", count().alias("<:Number_of_Actors"))\
-        .join("film_actor:a", "film_id")\
-        .group_by("f.title")\
+        .table("film")\
+        .select("title", count().alias("<:actor_count"))\
+        .join("film_actor", "film_id")\
+        .group_by("title")\
         .build() == """\
-SELECT f.title, COUNT(*) AS Number_of_Actors
-FROM film AS f
-INNER JOIN film_actor AS a
-ON (a.film_id = f.film_id)
-GROUP BY f.title
-ORDER BY Number_of_Actors DESC\
+SELECT title, COUNT(*) AS actor_count
+FROM film
+INNER JOIN film_actor
+USING film_id
+GROUP BY title
+ORDER BY actor_count DESC
 """
 
 
 def test_request_6d():
     """ How many copies of the film `Hunchback Impossible` exist in the inventory system? """
-    assert Request(compact=False, using=True)\
+    assert Request(compact=False)\
         .table("film")\
         .select("title", count().alias("Number_of_copies"))\
         .filter(_("title") == "Hunchback Impossible")\
@@ -204,26 +204,26 @@ def test_request_6d():
 SELECT title, COUNT(*) AS Number_of_copies
 FROM film
 INNER JOIN inventory
-USING (film_id)
+USING film_id
 WHERE (title = 'Hunchback Impossible')
-GROUP BY title\
+GROUP BY title
 """
 
 
 def test_request_6e():
     """ Using the tables `payment` and `customer` and the `JOIN` command, list the total paid by each customer. List the customers """
     assert Request(compact=False)\
-        .table("customer:c")\
-        .select(">:c.last_name", "c.first_name", sum("p.amount").alias("Total_Amount_Paid"))\
-        .join("payment:p", "customer_id")\
-        .group_by("c.last_name")\
+        .table("customer")\
+        .select(">:last_name", "first_name", sum("amount").alias("total_paid_amount"))\
+        .join("payment", "customer_id")\
+        .group_by("last_name")\
         .build() == """\
-SELECT c.last_name, c.first_name, SUM(p.amount) AS Total_Amount_Paid
-FROM customer AS c
-INNER JOIN payment AS p
-ON (p.customer_id = c.customer_id)
-GROUP BY c.last_name
-ORDER BY c.last_name ASC\
+SELECT last_name, first_name, SUM(amount) AS total_paid_amount
+FROM customer
+INNER JOIN payment
+USING customer_id
+GROUP BY last_name
+ORDER BY last_name ASC
 """
 
 
@@ -238,19 +238,22 @@ def test_request_7a():
         .build() == """\
 SELECT title
 FROM film
-WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN (SELECT language_id FROM language WHERE (name = 'English'))))\
+WHERE (((title LIKE 'K%') OR (title LIKE 'Q%')) AND (language_id IN (SELECT language_id FROM language WHERE (name = 'English'))))
 """
+
 
 def test_request_7b():
     """Use subqueries to display all actors who appear in the film `Alone Trip"""
     assert Request(compact=False)\
         .table("actor")\
         .select("first_name", "last_name")\
-        .filter(_("actor_id").isin(Request(table="film_actor").select("actor_id").filter(_("film_id").isin(Request(table="film").select("film_id").filter(_("title") == 'Alone Trip')))))\
+        .filter(_("actor_id").isin(
+            Request(table="film_actor").select("actor_id").filter(_("film_id").isin(
+                Request(table="film").select("film_id").filter(_("title") == 'Alone Trip')))))\
         .build() == """\
 SELECT first_name, last_name
 FROM actor
-WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT film_id FROM film WHERE (title = 'Alone Trip')))))\
+WHERE (actor_id IN (SELECT actor_id FROM film_actor WHERE (film_id IN (SELECT film_id FROM film WHERE (title = 'Alone Trip')))))
 """
 
 
@@ -258,133 +261,130 @@ def test_request_7c():
     """You want to run an email marketing campaign in Canada, for which you will need the names and email addresses of all Canadian
     customers. Use joins to retrieve this information."""
     assert Request(compact=False)\
-        .select("c.first_name", "c.last_name", "c.email")\
-        .table("customer:cus")\
-        .join("address:a", "address_id")\
-        .join("city:ci", "city_id")\
-        .join("country:ctr", "country_id")\
-        .filter(_("ctr.country") == 'canada')\
+        .select("first_name", "last_name", "email")\
+        .table("customer")\
+        .join("address", "address_id")\
+        .join("city", "city_id")\
+        .join("country", "country_id")\
+        .filter(_("country") == 'canada')\
         .build() == """\
-SELECT c.first_name, c.last_name, c.email
-FROM customer AS cus
-INNER JOIN address AS a
-ON (a.address_id = cus.address_id)
-INNER JOIN city AS ci
-ON (ci.city_id = a.city_id)
-INNER JOIN country AS ctr
-ON (ctr.country_id = ci.country_id)
-WHERE (ctr.country = 'canada')\
+SELECT first_name, last_name, email
+FROM customer
+INNER JOIN address
+USING address_id
+INNER JOIN city
+USING city_id
+INNER JOIN country
+USING country_id
+WHERE (country = 'canada')
 """
 
+
 def test_request_7d():
-    
     """Sales have been lagging among young families, and you wish to target all family movies for a promotion. Identify all movies
     categorized as family films."""
     assert Request(compact=False)\
-        .table("film:f")\
-        .select("title", "c.name")\
-        .join("film_category:fc", "film_id")\
-        .join("category:c", "category_id")\
+        .table("film")\
+        .select("title", "name")\
+        .join("film_category", "film_id")\
+        .join("category", "category_id")\
         .filter(_('name') == 'family')\
         .build() == """\
-SELECT title, c.name
-FROM film AS f
-INNER JOIN film_category AS fc
-ON (fc.film_id = f.film_id)
-INNER JOIN category AS c
-ON (c.category_id = fc.category_id)
-WHERE (name = 'family')\
+SELECT title, name
+FROM film
+INNER JOIN film_category
+USING film_id
+INNER JOIN category
+USING category_id
+WHERE (name = 'family')
 """
 
+
 def test_request_7e():
-    
     """Display the most frequently rented movies in descending order.
     """
     assert Request(compact=False)\
         .table("film")\
-        .select('title', count().alias('<:Rentals'))\
+        .select('title', count().alias('<:rentals'))\
         .join("inventory", 'film_id')\
         .join("rental", "inventory_id")\
         .group_by("title")\
         .build() == """\
-SELECT title, COUNT(*) AS Rentals
+SELECT title, COUNT(*) AS rentals
 FROM film
-INNER JOIN inventory AS inv
-ON (inventory.film_id = film.film_id)
+INNER JOIN inventory
+USING film_id
 INNER JOIN rental
-ON (rental.inventory_id = inventory.inventory_id)
+USING inventory_id
 GROUP BY title
-ORDER BY Rentals DESC\
+ORDER BY rentals DESC
 """
+
 
 def test_request_7f():
-    
-    """Write a query to display how much business, in dollars, each store brought in.
-    """
+    """ How much business, in dollars, each store brought in ? """
     assert Request(compact=False)\
-        .table("payment:p")\
-        .select('s.store_id', sum('amount').alias('Revenue'))\
-        .join('rental:r', 'rental_id')\
-        .join('inventory:i', "inventory_id")\
-        .join("store:s", "store_id")\
-        .group_by("s.store_id")\
+        .table("payment")\
+        .select('store_id', sum('amount').alias('revenue'))\
+        .join('rental', 'rental_id')\
+        .join('inventory', "inventory_id")\
+        .join("store", "store_id")\
+        .group_by("store_id")\
         .build() == """\
-SELECT s.store_id, SUM(amount) AS Revenue
-FROM payment AS p
-INNER JOIN rental AS r
-ON (r.rental_id = p.rental_id)
-INNER JOIN inventory AS i
-ON (i.inventory_id = r.inventory_id)
-INNER JOIN store AS s
-ON (s.store_id = i.store_id)
-GROUP BY s.store_id\
+SELECT store_id, SUM(amount) AS revenue
+FROM payment
+INNER JOIN rental
+USING rental_id
+INNER JOIN inventory
+USING inventory_id
+INNER JOIN store
+USING store_id
+GROUP BY store_id
 """
+
 
 def test_request_7g():
-
-    """Write a query to display for each store its store ID, city, and country.
-    """
+    """ How to display for each store its store ID, city, and country ? """
     assert Request(compact=False)\
-        .table("store:s")\
+        .table("store")\
         .select('store_id', 'city', 'country')\
-        .join('address:a', 'address_id')\
-        .join('city:cit', 'city_id')\
-        .join('country:ctr', 'country_id')\
+        .join('address', 'address_id')\
+        .join('city', 'city_id')\
+        .join('country', 'country_id')\
         .build() == """\
 SELECT store_id, city, country
-FROM store AS s
-INNER JOIN address AS a
-ON (a.address_id = s.address_id)
-INNER JOIN city AS cit
-ON (cit.city_id = a.city_id)
-INNER JOIN country AS ctr
-ON (ctr.country_id = cit.country_id)\
+FROM store
+INNER JOIN address
+USING address_id
+INNER JOIN city
+USING city_id
+INNER JOIN country
+USING country_id
 """
 
+
 def test_request_7h():
-    
     """List the top five genres in gross revenue in descending order. (**Hint**: you may need to use the following tables: category,
     film_category, inventory, payment, and rental.)"""
     assert Request(compact=False)\
-        .table("payment:p")\
-        .select(sum('amount').alias('Total Sales'), 'c.name:Genre')\
-        .join('rental:r', 'rental_id')\
-        .join('inventory:i', 'inventory_id')\
-        .join('category:c', 'category_id')\
-        .group_by('c.name'), sum('amount').order().asc()\
+        .table("payment")\
+        .select(sum('amount').alias('total_amount'), 'name')\
+        .join('rental', 'rental_id')\
+        .join('inventory', 'inventory_id')\
+        .join('category', 'category_id')\
+        .group_by('name'), sum('amount')\
         .build() == """\
-SELECT SUM(amount) AS Total Sales, c.name AS Genre
-FROM payment AS p
-INNER JOIN rental AS r
-ON (r.rental_id = p.rental_id)
-INNER JOIN inventory AS i
-ON (i.inventory_id = r.inventory_id)
-INNER JOIN category AS c
-ON (c.category_id = i.category_id)
-GROUP BY c.name
-ORDER BY SUM(amount) DESC\
+SELECT SUM(amount) AS total_amount, name
+FROM payment
+INNER JOIN rental
+USING rental_id
+INNER JOIN inventory
+USING inventory_id
+INNER JOIN category
+USING category_id
+GROUP BY name
+ORDER BY total_amount DESC
 """
-
 
 
 # 8a. In your new role as an executive, you would like to have an easy way of viewing the Top five genres by gross revenue. Use the

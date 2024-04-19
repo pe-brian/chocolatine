@@ -15,3 +15,4 @@ from .having import Having  # noqa
 from .choc_expr_attr import ChocExprAttr  # noqa
 from .group_by import GroupBy  # noqa
 from .order_by import OrderBy  # noqa
+from .join import Join  # noqa

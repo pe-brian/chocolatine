@@ -10,10 +10,11 @@ class GroupBy(ChocExpr):
     """ GroupBy expression """
     def __init__(
             self,
-            cols: Iterable[Col | str] | None = None
+            cols: Iterable[Col | str] | None = None,
+            compact: bool = True
     ) -> None:
         self.cols = cols
-        super().__init__("GROUP BY {$(cols)}")
+        super().__init__("GROUP BY {$(cols)}", compact=compact)
 
     @property
     def cols(self):
