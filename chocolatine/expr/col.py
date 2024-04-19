@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import Iterable, Self, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .request import Request
+    from .query import Query
 
 from typeguard import typechecked
 
@@ -74,7 +74,7 @@ class Col(NamedExpr):
     def __rshift__(self, value: str) -> Condition:
         return self.like(value)
 
-    def __lshift__(self, expr: Request | Iterable[int | float | str]) -> Condition:
+    def __lshift__(self, expr: Query | Iterable[int | float | str]) -> Condition:
         return self.isin(expr)
 
     def order(self, ordering: Ordering = Ordering.Ascending) -> Self:
@@ -94,7 +94,7 @@ class Col(NamedExpr):
         """ Apply the "like" operator """
         return Condition(self, Operator.Like, expr)
 
-    def isin(self, expr: Request | Iterable[int | float | str]) -> Condition:
+    def isin(self, expr: Query | Iterable[int | float | str]) -> Condition:
         """ Apply the "in" operator """
         return Condition(self, Operator.In, expr)
 
