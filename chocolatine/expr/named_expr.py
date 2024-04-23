@@ -4,7 +4,6 @@ from typing import Self
 from typeguard import typechecked
 
 from .choc_expr import ChocExpr
-from ..utils import gen_random_string
 
 
 @typechecked
@@ -28,9 +27,9 @@ class NamedExpr(ChocExpr):
                 raise ValueError("Ref parameter can't be used with when name is *")
             self._ref = ref
 
-    def alias(self, name: str | None = None) -> Self:
+    def alias(self, name: str) -> Self:
         """ Set an alias """
-        self._alias = name or gen_random_string(8)
+        self._alias = name
         return self
 
     def _build_name(self) -> str:
