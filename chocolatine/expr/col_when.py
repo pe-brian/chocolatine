@@ -8,7 +8,7 @@ from ..utils import quote_expr
 
 
 @typechecked
-class CaseWhen(ChocExpr):
+class ColWhen(ChocExpr):
     """ 'Case When' expression  """
     def __init__(
             self,

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Iterable
 
 if TYPE_CHECKING:
     from .table import Table
-    from .assignation import Assignation
+    from .condition import Condition
 
 from typeguard import typechecked
 
@@ -19,7 +19,7 @@ class UpdateSet(ChocExpr):
     def __init__(
             self,
             table: str | Table | None = None,
-            assignations: Iterable[Assignation] | None = None,
+            assignations: Iterable[Condition] | None = None,
             compact: bool = True
     ) -> None:
         self._update = Update(table=table, compact=compact)

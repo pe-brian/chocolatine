@@ -17,12 +17,13 @@ from chocolatine import Query, Col as _
 
 req = Query().table("customer")\
                .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
-               .filter(_("first_name").like("%E"))
+               .filter(_("first_name") >> "%E")
 print(req)
 ```
 Output :
 ```SQL
-SELECT customer_id, UPPER(CONCAT(first_name, ' ', last_name)) AS name FROM customer
+SELECT customer_id, UPPER(CONCAT(first_name, ' ', last_name)) AS name
+FROM customer
 WHERE first_name LIKE '%E'
 ```
 
@@ -39,7 +40,8 @@ print(req)
 ```
 Output :
 ```SQL
-SELECT customer_id, COUNT(*) AS payment_count, SUM(amount) AS total_amount FROM payment
+SELECT customer_id, COUNT(*) AS payment_count, SUM(amount) AS total_amount
+FROM payment
 WHERE customer_id != 3
 GROUP BY customer_id
 HAVING COUNT(*) > 1 AND SUM(amount) > 5.00
@@ -51,7 +53,7 @@ __Join__ :
 from chocolatine import Query, Col as _
 
 req = Query().table("film")\
-               .select("title", "film_id", _("first_name") & " " & _("last_name"))\
+               .select("title", "film_id", (_("first_name") & " " & _("last_name")).alias("name"))\
                .join("film_actor", "film_id")\
                .join("actor", "actor_id")\
                .build()
@@ -59,12 +61,12 @@ print(req)
 ```
 Output :
 ```SQL
-SELECT title, jcjqtxnn.film_id, CONCAT(first_name, ' ', last_name)
-FROM film AS oetjfebo
-INNER JOIN film_actor AS jcjqtxnn
-ON (jcjqtxnn.film_id = oetjfebo.film_id)
-INNER JOIN actor AS wcgbrway
-ON (wcgbrway.actor_id = jcjqtxnn.actor_id)
+SELECT title, film_id, CONCAT(first_name, ' ', last_name) AS name
+FROM film
+INNER JOIN film_actor
+USING film_id
+INNER JOIN actor
+USING actor_id
 ```
 
 _Note : Random aliases have been used to remove ambiguity on joins clauses. You can always define your own aliases instead._
@@ -110,16 +112,15 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Mini langage for SQL requests templating : Choc expr
 - Choc expr : Conditions
 - Choc expr : Basic loops (with unpacking lists)
+- Case When
+- Update requests
+- Delete requests
 
 # To-do
 
-- Try to remove join ambiguity on joined columns on names first, then on alias
 - Concat shortcut function
 - Possibility to disable dynamic type checking (for performance concerns)
-- Implement Case-When
 - Create requests
-- Update requests
-- Delete requests
 - Pypi package (to install with pip install)
 - SQLServer compatibility
 - PostGreSQL compatibility

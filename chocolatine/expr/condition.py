@@ -3,6 +3,7 @@ from typing import Self, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .col import Col
+    from .when import When
 
 from typeguard import typechecked
 
@@ -18,7 +19,7 @@ class Condition(ChocExpr):
             self,
             left_value: int | float | str | Col | Self,
             op: Operator,
-            right_value: int | float | str | Col | Self,
+            right_value: int | float | str | Col | When | Self,
             negate: bool = False
     ) -> None:
         self._left_value = left_value

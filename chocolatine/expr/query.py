@@ -2,7 +2,7 @@ from typing import Iterable, Self, Tuple
 
 from typeguard import typechecked
 
-from .assignation import Assignation
+from .delete_from import DeleteFrom
 from ..query_mode import QueryMode
 from .join import Join
 from .order_by import OrderBy
@@ -25,7 +25,7 @@ class Query(ChocExpr):
     """ Handler to generate a SQL query """
     def __init__(
             self,
-            query_mode: QueryMode = QueryMode.Read,
+            query_mode: QueryMode = QueryMode.Select,
             compact: bool = True,
             limit: int | None = None,
             table: str | Table | None = None,
@@ -34,7 +34,7 @@ class Query(ChocExpr):
             cols: Iterable[str | Col] | None = None,
             groups: Iterable[str] | None = None,
             filters: Iterable[Condition] | None = None,
-            assignations: Iterable[Assignation] | None = None
+            assignations: Iterable[Condition] | None = None
     ) -> None:
         if cols is None:
             cols = []
@@ -46,7 +46,7 @@ class Query(ChocExpr):
             filters = []
         if assignations is None:
             assignations = []
-        if query_mode == QueryMode.Read and assignations:
+        if query_mode == QueryMode.Select and assignations:
             raise ValueError("You cannot have update assignations in read query mode")
         elif query_mode == QueryMode.Update and cols:
             raise ValueError("You cannot have update cols in update query mode")
@@ -60,19 +60,32 @@ class Query(ChocExpr):
         self._joins = []
         self._compact = compact
         self._update_set = UpdateSet(table=table, assignations=assignations, compact=compact)
+        self._delete_from = DeleteFrom(table=table, compact=compact)
         if joins:
             self.join_many(*joins)
-        if cols and query_mode == QueryMode.Read:
+        if cols and query_mode == QueryMode.Select:
             self.select(*cols)
         if groups:
             self.group_by(*groups)
         for filter in filters:
             self.filter(filter)
-        super().__init__("@{read_mode}:{_select_from~}{$(_joins)~}:{_update_set~};{_where~}@{read_mode}:{_group_by~}{_having~}{_order_by~}{_limit~}:;", list_join_sep="\n", compact=compact)
+        super().__init__(
+            "@{update_mode}:{_update_set~}:;@{delete_mode}:{_delete_from~}:;@{read_mode}:{_select_from~}{$(_joins)~}:;{_where~}@{read_mode}:{_group_by~}{_having~}{_order_by~}{_limit~}:;",
+            list_join_sep="\n",
+            compact=compact
+        )
 
     @property
     def read_mode(self) -> bool:
-        return self._query_mode == QueryMode.Read
+        return self._query_mode == QueryMode.Select
+
+    @property
+    def update_mode(self) -> bool:
+        return self._query_mode == QueryMode.Update
+
+    @property
+    def delete_mode(self) -> bool:
+        return self._query_mode == QueryMode.Delete
 
     def table(self, val: str | Table | None) -> Self:
         """ Set the table name """
@@ -81,12 +94,19 @@ class Query(ChocExpr):
 
     def select(self, *vals: str | Col) -> Self:
         """ Set the selected cols """
+        self._query_mode = QueryMode.Select
         self._select_from.select.cols = vals
         return self
 
-    def update(self, *assignations: Assignation) -> Self:
-        """ Set the selected cols """
+    def update(self, *assignations: Condition) -> Self:
+        """ Update """
+        self._query_mode = QueryMode.Update
         self._update_set._set.assignations = assignations
+        return self
+
+    def delete(self) -> Self:
+        """ Delete """
+        self._query_mode = QueryMode.Delete
         return self
 
     def distinct(self) -> Self:

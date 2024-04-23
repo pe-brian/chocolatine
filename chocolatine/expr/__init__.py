@@ -7,8 +7,8 @@ from .select import Select  # noqa
 from .limit import Limit  # noqa
 from .query import Query  # noqa
 from .col import Col  # noqa
-from .case_when import CaseWhen  # noqa
-from .conditional_case_when import ConditionalCaseWhen  # noqa
+from .col_when import ColWhen  # noqa
+from .when import When  # noqa
 from .condition import Condition  # noqa
 from .where import Where  # noqa
 from .having import Having  # noqa
@@ -19,4 +19,5 @@ from .join import Join  # noqa
 from .set import Set  # noqa
 from .update import Update  # noqa
 from .update_set import UpdateSet  # noqa
-from .assignation import Assignation  # noqa
+from .delete import Delete  # noqa
+from .delete_from import DeleteFrom  # noqa
