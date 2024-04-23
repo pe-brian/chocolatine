@@ -2,7 +2,6 @@ from typing import Iterable, Self, Tuple
 
 from typeguard import typechecked
 
-from .assignation import Assignation
 from ..query_mode import QueryMode
 from .join import Join
 from .order_by import OrderBy
@@ -34,7 +33,7 @@ class Query(ChocExpr):
             cols: Iterable[str | Col] | None = None,
             groups: Iterable[str] | None = None,
             filters: Iterable[Condition] | None = None,
-            assignations: Iterable[Assignation] | None = None
+            assignations: Iterable[Condition] | None = None
     ) -> None:
         if cols is None:
             cols = []
@@ -84,7 +83,7 @@ class Query(ChocExpr):
         self._select_from.select.cols = vals
         return self
 
-    def update(self, *assignations: Assignation) -> Self:
+    def update(self, *assignations: Condition) -> Self:
         """ Set the selected cols """
         self._update_set._set.assignations = assignations
         return self
