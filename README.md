@@ -18,7 +18,7 @@ from chocolatine import Query, Col as _
 query = Query().table("customer")\
                .select(
                     "customer_id",
-                    (_("first_name") & ' ' & _("last_name")).upper().alias(">name")
+                    (_("first_name") & ' ' & _("last_name")).upper().alias("name")
                 )\
                .filter(_("first_name") >> "%E")
 print(query)
