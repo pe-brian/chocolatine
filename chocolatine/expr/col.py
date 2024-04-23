@@ -157,6 +157,10 @@ class Col(NamedExpr):
         return self
 
     @property
+    def full_name(self) -> str:
+        return self._build_full_name()
+
+    @property
     def ordering_label(self) -> str | None:
         return f"{(self._ref + ".") if self._ref else ""}{self._alias if self._alias else self._name} {self._ordering.value}" if self._ordering else None
 
