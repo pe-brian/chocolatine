@@ -2,11 +2,11 @@
 
 ![Image](logo.jpg)
 
-Chocolatine is a lightweight python library designed to easily generate SQL query.
+Chocolatine is a lightweight python library designed to easily generate SQL queries.
 
 # Why Chocolatine ?
 
-If you know Python programming langage but you are not at your ease with SQL (or you don't want to manage SQL requests by yourself), you can use Chocolatine to generate some SQL requests for you.
+If you know Python programming langage but you are not at your ease with SQL (or you don't want to manage SQL requests by yourself), you can use Chocolatine to generate some SQL queries for you.
 Of course, there are many other open source projects to do that, but honestly, they are more complex than most people expects from them (SQLAlchemy, Django ORM, etc...).
 
 # Examples
@@ -16,8 +16,8 @@ __Concatenation & filtering__ :
 from chocolatine import Query, Col as _
 
 query = Query().table("customer")\
-              .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
-              .filter(_("first_name") >> "%E")
+               .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
+               .filter(_("first_name") >> "%E")
 print(query)
 ```
 Output :
@@ -32,10 +32,10 @@ __Group by, aggregation & filtering__ :
 from chocolatine import Query, sum, Col as _
 
 query = Query().table("payment")\
-              .select("customer_id", count().alias("payment_count"), sum("amount").alias("total_amount").order())\
-              .group_by("customer_id")\
-              .filter(count() > 1 & sum("amount") > 5.00)\
-              .filter(_("customer_id") != 3)
+               .select("customer_id", count().alias("payment_count"), sum("amount").alias("total_amount").order())\
+               .group_by("customer_id")\
+               .filter(count() > 1 & sum("amount") > 5.00)\
+               .filter(_("customer_id") != 3)
 print(query)
 ```
 Output :
@@ -53,10 +53,10 @@ __Join__ :
 from chocolatine import Query, Col as _
 
 query = Query().table("film")\
-              .select("title", "film_id", (_("first_name") & " " & _("last_name")).alias("name"))\
-              .join("film_actor", "film_id")\
-              .join("actor", "actor_id")\
-              .build()
+               .select("title", "film_id", (_("first_name") & " " & _("last_name")).alias("name"))\
+               .join("film_actor", "film_id")\
+               .join("actor", "actor_id")\
+               .build()
 print(query)
 ```
 Output :
@@ -92,20 +92,17 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 - Dynamic type checking
 - Use of : or @ in col or table name directly for alias
-- NamedExpr value checking to prevent SQL injection attacks
+- Protection against SQL injection attacks
 - Calls orders doesn't matter (except for join clauses)
 - Compact or extended SQL expressions
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
 - Shortcut functions : Asc, Desc, Sum, Count, Upper, Lower
-- \>: or <: at first position in column name in select to set the ordering
-- \>: or <: in column alias
+- \>: or <: at first position in column name (or alias) in select to set the ordering
 - \>\> operator to perform a "like" condition on a column
 - << operator to perform a "in" condition on a column
 - Limit clause
-- Using keyword
-- Nested select requests
-- Check conditions values
+- Nested requests
 - "ChocExpr" mini langage for SQL requests templating :
     - Conditions
     - Basic loops (with unpacking lists)
@@ -130,10 +127,6 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 # Install Sakila database (mySQL) with Docker
 
 ```docker run -p 3306:3306 -d sakiladb/mysql:latest```
-
-# Use Chocolatine to directly query your mySQL database
-
-Take a look at : `scratch.py`
 
 # Contributors
 
