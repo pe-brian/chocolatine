@@ -7,8 +7,8 @@ from .select import Select  # noqa
 from .limit import Limit  # noqa
 from .query import Query  # noqa
 from .col import Col  # noqa
-from .case_when import CaseWhen  # noqa
-from .conditional_case_when import ConditionalCaseWhen  # noqa
+from .col_when import ColWhen  # noqa
+from .when import When  # noqa
 from .condition import Condition  # noqa
 from .where import Where  # noqa
 from .having import Having  # noqa

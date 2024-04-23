@@ -60,7 +60,7 @@ class Query(ChocExpr):
         self._joins = []
         self._compact = compact
         self._update_set = UpdateSet(table=table, assignations=assignations, compact=compact)
-        self._delete_from = DeleteFrom(table=table, assignations=assignations, compact=compact)
+        self._delete_from = DeleteFrom(table=table, compact=compact)
         if joins:
             self.join_many(*joins)
         if cols and query_mode == QueryMode.Select:

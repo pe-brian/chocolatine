@@ -1,11 +1,13 @@
 from __future__ import annotations
 from typing import Iterable, Self, TYPE_CHECKING
 
+
 if TYPE_CHECKING:
     from .query import Query
 
 from typeguard import typechecked
 
+from .when import When
 from ..utils import quote_expr
 from .named_expr import NamedExpr
 from .condition import Condition
@@ -52,13 +54,13 @@ class Col(NamedExpr):
             ref=self._ref
         )
 
-    def __gt__(self, value: Col | int | float) -> Condition:
+    def __gt__(self, value: Col | int | float | When) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
 
-    def __eq__(self, value: Col | int | float | str) -> Condition:
+    def __eq__(self, value: Col | int | float | str | When) -> Condition:
         return Condition(left_value=self, op=Operator.Equal, right_value=value)
 
-    def __ne__(self, value: Col | int | float | str) -> Condition:
+    def __ne__(self, value: Col | int | float | str | When) -> Condition:
         return Condition(left_value=self, op=Operator.NotEqual, right_value=value)
 
     def __and__(self, value: Col | str) -> Self:
