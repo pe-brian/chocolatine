@@ -16,7 +16,10 @@ __Concatenation & filtering__ :
 from chocolatine import Query, Col as _
 
 query = Query().table("customer")\
-               .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
+               .select(
+                    "customer_id",
+                    (_("first_name") & ' ' & _("last_name")).upper().alias(">name")
+                )\
                .filter(_("first_name") >> "%E")
 print(query)
 ```
@@ -32,7 +35,11 @@ __Group by, aggregation & filtering__ :
 from chocolatine import Query, sum, Col as _
 
 query = Query().table("payment")\
-               .select("customer_id", count().alias("payment_count"), sum("amount").alias("total_amount").order())\
+               .select(
+                    "customer_id",
+                    count().alias("payment_count"),
+                    sum("amount").alias(">:total_amount")
+                )\
                .group_by("customer_id")\
                .filter(count() > 1 & sum("amount") > 5.00)\
                .filter(_("customer_id") != 3)
@@ -53,7 +60,11 @@ __Join__ :
 from chocolatine import Query, Col as _
 
 query = Query().table("film")\
-               .select("title", "film_id", (_("first_name") & " " & _("last_name")).alias("name"))\
+               .select(
+                    "title",
+                    "film_id",
+                    (_("first_name") & " " & _("last_name")).alias("name")
+                )\
                .join("film_actor", "film_id")\
                .join("actor", "actor_id")\
                .build()
