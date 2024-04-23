@@ -15,10 +15,10 @@ __Concatenation & filtering__ :
 ```python
 from chocolatine import Query, Col as _
 
-req = Query().table("customer")\
-               .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
-               .filter(_("first_name") >> "%E")
-print(req)
+query = Query().table("customer")\
+              .select("customer_id", (_("first_name") & ' ' & _("last_name")).upper().alias(">name"))\
+              .filter(_("first_name") >> "%E")
+print(query)
 ```
 Output :
 ```SQL
@@ -31,12 +31,12 @@ __Group by, aggregation & filtering__ :
 ```python
 from chocolatine import Query, sum, Col as _
 
-req = Query().table("payment")\
-               .select("customer_id", count().alias("payment_count"), sum("amount").alias("total_amount").order())\
-               .group_by("customer_id")\
-               .filter(count() > 1 & sum("amount") > 5.00)\
-               .filter(_("customer_id") != 3)
-print(req)
+query = Query().table("payment")\
+              .select("customer_id", count().alias("payment_count"), sum("amount").alias("total_amount").order())\
+              .group_by("customer_id")\
+              .filter(count() > 1 & sum("amount") > 5.00)\
+              .filter(_("customer_id") != 3)
+print(query)
 ```
 Output :
 ```SQL
@@ -52,12 +52,12 @@ __Join__ :
 ```python
 from chocolatine import Query, Col as _
 
-req = Query().table("film")\
-               .select("title", "film_id", (_("first_name") & " " & _("last_name")).alias("name"))\
-               .join("film_actor", "film_id")\
-               .join("actor", "actor_id")\
-               .build()
-print(req)
+query = Query().table("film")\
+              .select("title", "film_id", (_("first_name") & " " & _("last_name")).alias("name"))\
+              .join("film_actor", "film_id")\
+              .join("actor", "actor_id")\
+              .build()
+print(query)
 ```
 Output :
 ```SQL
@@ -97,9 +97,6 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Compact or extended SQL expressions
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
-- Automatic join condition on same name columns for both tables
-- Auto-alias on join clause if needed
-- Use of auto-alias on select clause if needed
 - Shortcut functions : Asc, Desc, Sum, Count, Upper, Lower
 - \>: or <: at first position in column name in select to set the ordering
 - \>: or <: in column alias
@@ -109,9 +106,9 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Using keyword
 - Nested select requests
 - Check conditions values
-- Mini langage for SQL requests templating : Choc expr
-- Choc expr : Conditions
-- Choc expr : Basic loops (with unpacking lists)
+- "ChocExpr" mini langage for SQL requests templating :
+    - Conditions
+    - Basic loops (with unpacking lists)
 - Case When
 - Update requests
 - Delete requests
