@@ -1,5 +1,4 @@
 from .choc_expr import ChocExpr  # noqa
-from .named_expr import NamedExpr  # noqa
 from .table import Table  # noqa
 from .from_expr import FromExpr  # noqa
 from .select_from import SelectFrom  # noqa

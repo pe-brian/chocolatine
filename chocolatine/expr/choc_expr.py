@@ -3,7 +3,7 @@ from typing import Any
 
 from typeguard import typechecked
 
-from ..utils import str_to_bool
+from ..utils import to_bool
 from .choc_expr_attr import ChocExprAttr
 from .expr import Expr
 
@@ -42,7 +42,7 @@ class ChocExpr(Expr):
     def eval_conditions(obj: Any, expr: str) -> str:
         regex = r"(@{([A-Za-z_.$()]+)}:([{}A-Za-z_.$()\s*~]*):([{}A-Za-z_.$()\s*~]*);)"
         matches = re.findall(regex, expr)
-        to_replace = {cond: cond_attr_if_true if str_to_bool(ChocExprAttr(obj, cond_attr).build()) else cond_attr_if_false for cond, cond_attr, cond_attr_if_true, cond_attr_if_false in matches}
+        to_replace = {cond: cond_attr_if_true if to_bool(ChocExprAttr(obj, cond_attr).build()) else cond_attr_if_false for cond, cond_attr, cond_attr_if_true, cond_attr_if_false in matches}
         for cond, replacement in to_replace.items():
             expr = expr.replace(cond, replacement)
         return expr

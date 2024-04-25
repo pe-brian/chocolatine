@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+import re
 from typing import Iterable, Self, TYPE_CHECKING
 
 
@@ -8,8 +10,7 @@ if TYPE_CHECKING:
 from typeguard import typechecked
 
 from .when import When
-from ..utils import quote_expr
-from .named_expr import NamedExpr
+from .choc_expr import ChocExpr
 from .condition import Condition
 from ..operator import Operator
 from ..ordering import Ordering
@@ -18,7 +19,7 @@ from ..sql_function import SqlFunction
 
 
 @typechecked
-class Col(NamedExpr):
+class Col(ChocExpr):
     """ SQL column """
     def __init__(
             self,
@@ -27,7 +28,7 @@ class Col(NamedExpr):
             agg_function: AggFunction | None = None,
             sql_function: SqlFunction | None = None,
             ordering: Ordering | None = None,
-            ref: str | None = None
+            table_name: str | None = None
     ) -> None:
         if not name:
             raise ValueError("The name parameter must not be empty")
@@ -37,11 +38,44 @@ class Col(NamedExpr):
         elif name.startswith(">:"):
             name = name[2:]
             ordering = Ordering.Ascending
-        super().__init__(name=name, alias=alias, ref=ref)
+
+        if name != "*":
+            match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s()]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)
+            if not match:
+                raise ValueError(f"Forbidden characters in expr '{name}'")
+            r, n, a = match.groups()
+            name = n
+            alias = alias or (a[1:] if a else None)
+            table_name = table_name or (r[:-1] if r else None)
+        else:
+            if alias:
+                raise ValueError("alias parameter can't be used with star expression")
+            if table_name:
+                raise ValueError("table_name parameter can't be used with star expression")
+            if ordering:
+                raise ValueError("ordering parameter can't be used with star expression")
+
         self._agg_function = agg_function
         self._sql_function = sql_function
         self._ordering = ordering
         self._concatenation = []
+        self._alias = alias
+        self._table_name = table_name
+        self._name = name
+
+        super().__init__("{full_name}@{_alias}: AS {_alias}:;")
+
+    @property
+    def full_name(self):
+        if self._concatenation:
+            name = f"CONCAT({", ".join(list(f"'{x}'" if type(x) is str else str(x) for x in self._concatenation))})"
+        else:
+            name = f"{self._table_name + "." if self._table_name else ""}{self._name}"
+        if self._agg_function:
+            return f"{self._agg_function.value}({f"{name}"})"
+        if self._sql_function:
+            return f"{self._sql_function.value}({f"{name}"})"
+        return f"{name}"
 
     def copy(self) -> Self:
         """ Copy the column """
@@ -51,7 +85,7 @@ class Col(NamedExpr):
             agg_function=self._agg_function,
             sql_function=self._sql_function,
             ordering=self._ordering,
-            ref=self._ref
+            table_name=self._table_name
         )
 
     def __gt__(self, value: Col | int | float | When) -> Condition:
@@ -157,22 +191,5 @@ class Col(NamedExpr):
         return self
 
     @property
-    def full_name(self) -> str:
-        return self._build_full_name()
-
-    @property
     def ordering_label(self) -> str | None:
-        return f"{(self._ref + ".") if self._ref else ""}{self._alias if self._alias else self._name} {self._ordering.value}" if self._ordering else None
-
-    def _build_concat(self) -> str:
-        return f"CONCAT({", ".join(quote_expr(x) if type(x) is str else str(x) for x in self._concatenation)})"
-
-    def _build_function(self) -> str:
-        if self._agg_function:
-            return f"{self._agg_function.value}({"{}"})"
-        if self._sql_function:
-            return f"{self._sql_function.value}({"{}"})"
-        return "{}"
-
-    def _build_full_name(self) -> str:
-        return self._build_function().format(super()._build_full_name() if not self._concatenation else self._build_concat())
+        return f"{(self._table_name + ".") if self._table_name else ""}{self._alias if self._alias else self._name} {self._ordering.value}" if self._ordering else None

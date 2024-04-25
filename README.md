@@ -108,7 +108,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Compact or extended SQL expressions
 - Whole system to deal with conditions (logical operators, boolean operators, priority order)
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
-- Shortcut functions : Asc, Desc, Sum, Count, Upper, Lower
+- Shortcut functions : Asc, Desc, Sum, Count, Upper, Lower, Concat, Second, Minute, Hour, Day, Month, Year
 - \>: or <: at first position in column name (or alias) in select to set the ordering
 - \>\> operator to perform a "like" condition on a column
 - << operator to perform a "in" condition on a column
@@ -123,8 +123,8 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # To-do
 
-- Concat shortcut function
-- Possibility to disable dynamic type checking (for performance concerns)
+- Tables union
+- Option to disable dynamic type checking (for performance concerns)
 - Create requests
 - Pypi package (to install with pip install)
 - SQLServer compatibility
