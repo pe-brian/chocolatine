@@ -9,6 +9,11 @@ def test_col_init():
     assert col._ordering == Ordering.Ascending
 
 
+def test_col_init_with_name():
+    assert _("table.name@alias").build() == "table.name AS alias"
+    assert _("table.name:alias").build() == "table.name AS alias"
+
+
 def test_col_build():
     assert _("amount").build() == "amount"
     assert _("amount").build() == str(_("amount"))
@@ -21,13 +26,13 @@ def test_col_build_immutable():
     col = _(
         name="amount",
         alias="total_amount",
-        ref="payment",
+        table_name="payment",
         agg_function=AggFunction.Sum
     )
     col.build()
     assert col._name == "amount"
     assert col._alias == "total_amount"
-    assert col._ref == "payment"
+    assert col._table_name == "payment"
     assert col._agg_function == AggFunction.Sum
     assert col._sql_function is None
     assert col._ordering is None

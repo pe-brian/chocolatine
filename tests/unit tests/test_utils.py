@@ -1,4 +1,4 @@
-from chocolatine import quote_expr, str_to_bool
+from chocolatine import quote_expr, to_bool
 
 
 def test_quote_expr():
@@ -6,6 +6,11 @@ def test_quote_expr():
     assert quote_expr(1) == 1
 
 
-def test_str_to_bool():
-    assert str_to_bool("True") is True
-    assert str_to_bool("False") is False
+def test_to_bool():
+    assert to_bool("True") is True
+    assert to_bool("Hello") is True
+    assert to_bool(1) is True
+    assert to_bool("False") is False
+    assert to_bool(None) is False
+    assert to_bool("None") is False
+    assert to_bool(0) is False

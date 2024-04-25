@@ -136,3 +136,13 @@ def test_choc_expr_with_endline_extended():
             super().__init__(choc_expr=expr, compact=False)
 
     assert Statement("{a~}{b}").build() == "val_a\nval_b"
+
+
+def test_choc_expr_condition_none():
+
+    class Statement(ChocExpr):
+        def __init__(self, expr):
+            self.cond = None
+            super().__init__(expr)
+
+    assert Statement("@{cond}:a:b;").build() == "b"

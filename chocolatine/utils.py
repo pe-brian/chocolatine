@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import Self, TYPE_CHECKING
+from typing import Any, Self, TYPE_CHECKING
+
+from typeguard import typechecked
 
 if TYPE_CHECKING:
     from .expr.col import Col
 
 
+# @typechecked
 def quote_expr(expr: int | float | str | Col | Self) -> str:
     """ Add apostrophes arround a string if it is one, otherwise do nothing """
     if type(expr) is str:
@@ -12,9 +15,9 @@ def quote_expr(expr: int | float | str | Col | Self) -> str:
     return expr
 
 
-def str_to_bool(string: str) -> bool:
-    if string == "True":
-        return True
-    elif string == "False":
+# @typechecked
+def to_bool(val: Any) -> bool:
+    """ Cast any value into boolean """
+    if not val or val in ("False", "None"):
         return False
-    raise ValueError(f"Unable to cast {string} to a boolean")
+    return True
