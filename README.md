@@ -9,6 +9,10 @@ Chocolatine is a lightweight python library designed to easily generate SQL quer
 If you know Python programming langage but you are not at your ease with SQL (or you don't want to manage SQL requests by yourself), you can use Chocolatine to generate some SQL queries for you.
 Of course, there are many other open source projects to do that, but honestly, they are more complex than most people expects from them (SQLAlchemy, Django ORM, etc...).
 
+# Installation
+
+```pip install chocolatine```
+
 # Examples
 
 __Concatenation & filtering__ :
