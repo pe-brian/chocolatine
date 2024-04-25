@@ -130,7 +130,6 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - Tables union
 - Option to disable dynamic type checking (for performance concerns)
 - Create requests
-- Pypi package (to install with pip install)
 - SQLServer compatibility
 - PostGreSQL compatibility
 - SQLite3 compatibility
