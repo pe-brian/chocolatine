@@ -53,7 +53,7 @@ class Col(ChocExpr):
             if table_name:
                 raise ValueError("table_name parameter can't be used with star expression")
             if ordering:
-                raise ValueError("ordering parameter can't be used with star expression") 
+                raise ValueError("ordering parameter can't be used with star expression")
 
         self._agg_function = agg_function
         self._sql_function = sql_function
