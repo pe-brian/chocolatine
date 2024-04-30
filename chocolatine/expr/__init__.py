@@ -20,3 +20,4 @@ from .update import Update  # noqa
 from .update_set import UpdateSet  # noqa
 from .delete import Delete  # noqa
 from .delete_from import DeleteFrom  # noqa
+from .union import Union  # noqacd 

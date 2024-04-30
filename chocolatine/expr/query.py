@@ -18,6 +18,7 @@ from .condition import Condition
 from .col import Col
 from .table import Table
 from .update_set import UpdateSet
+from .union import Union
 
 
 @typechecked
@@ -133,10 +134,21 @@ class Query(ChocExpr):
         return self
 
     def join(self, table: str | Table, condition: Condition | str | Iterable[str], join_type: JoinType | None = JoinType.Inner) -> Self:
+        """ Join two tables together """
         self._joins.append(Join(table=table if isinstance(table, Table) else Table(name=table), condition=condition, join_type=join_type, compact=self._compact))
         return self
 
     def join_many(self, *joins_params: Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]) -> Self:
+        """ Join more than two tables together """
         for join_params in joins_params:
             self.join(*join_params)
         return self
+
+    def union(self, other_request: Self) -> Union:
+        return Union(self, other_request, compact=self._compact)
+
+    def __and__(self, other_request: Self) -> Union:
+        return self.union(other_request)
+
+    def __rand__(self, other_request: Self) -> Union:
+        return self.__and__(other_request)
