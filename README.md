@@ -6,7 +6,7 @@ Chocolatine is a lightweight python library designed to easily generate SQL quer
 
 # Why Chocolatine ?
 
-If you know Python programming langage but you are not at your ease with SQL (or you don't want to manage SQL requests by yourself), you can use Chocolatine to generate some SQL queries for you.
+If you know Python programming langage but you are not at your ease with SQL (or you don't want to manage SQL queries by yourself), you can use Chocolatine to generate some SQL queries for you.
 Of course, there are many other open source projects to do that, but honestly, they are more complex than most people expects from them (SQLAlchemy, Django ORM, etc...).
 
 # Installation
@@ -93,15 +93,16 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # Basic functionnalities
 
-- Select requests
+- Select, Update & delete queries
 - Distinct
-- Aliases (for columns & tables)
-- Ordering
-- Group by
-- Aggregation functions
+- Names aliases
+- Columns ordering
+- Group by & aggregations
 - Joins
 - SQL functions
 - Concatenations
+- Unions
+- Case-When
 
 # Advanced functionnalities
 
@@ -116,20 +117,15 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 - \>: or <: at first position in column name (or alias) in select to set the ordering
 - \>\> operator to perform a "like" condition on a column
 - << operator to perform a "in" condition on a column
-- Limit clause
-- Nested requests
-- "ChocExpr" mini langage for SQL requests templating :
+- Nested queries
+- "ChocExpr" mini langage for SQL queries templating :
     - Conditions
     - Basic loops (with unpacking lists)
-- Case When
-- Update requests
-- Delete requests
 
 # To-do
 
-- Tables union
 - Option to disable dynamic type checking (for performance concerns)
-- Create requests
+- Create queries
 - SQLServer compatibility
 - PostGreSQL compatibility
 - SQLite3 compatibility

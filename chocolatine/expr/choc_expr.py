@@ -58,6 +58,8 @@ class ChocExpr(Expr):
 
     def build(self) -> str:
         expr = self.eval_attributes(ChocExpr.eval_conditions(self, self._expr))
+        expr = expr.replace("~", "\n")
+        expr = expr.replace("\n\n", "\n")
         if self.compact:
             expr = expr.replace("\n", " ")
             expr = expr.strip()
