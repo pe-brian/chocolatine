@@ -1,3 +1,9 @@
+[![PyPI version](https://badge.fury.io/py/chocolatine.svg)](https://badge.fury.io/py/chocolatine) ![Licence badge](https://img.shields.io/pypi/l/chocolatine) ![Python version](https://img.shields.io/pypi/pyversions/chocolatine)
+[![Actions Status](https://github.com/pe-brian/chocolatine/workflows/validate-dev-push/badge.svg)](https://github.com/pe-brian/chocolatine/actions)
+![Dependencies](https://img.shields.io/badge/dependencies-typeguard-yellowgreen)
+![Downloads per month](https://img.shields.io/pypi/dm/chocolatine)
+![Last commit](https://img.shields.io/github/last-commit/pe-brian/chocolatine)
+
 # chocolatine
 
 ![Image](logo.jpg)
