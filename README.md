@@ -124,6 +124,7 @@ It is not excluded that in the future it will be compatible with Sqlite3, SqlSer
 
 # To-do
 
+- Equality evaluation in ChocExpr if statements
 - Option to disable dynamic type checking (for performance concerns)
 - Create queries
 - SQLServer compatibility
