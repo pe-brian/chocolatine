@@ -1,4 +1,4 @@
-from chocolatine import Query, Col as _, month, year, sum, count, QueryMode, When
+from chocolatine import Query, Col as _, month, year, sum, count, QueryMode, When, View, ViewMode
 
 
 def test_query_1a():
@@ -422,29 +422,54 @@ ORDER BY total_amount DESC
 """
 
 
-# 8a. In your new role as an executive, you would like to have an easy way of viewing the Top five genres by gross revenue. Use the
-# solution from the problem above to create a view. If you havent solved 7h, you can substitute another query to create a view.
+def test_query_8a():
+    """ In your new role as an executive, you would like to have an easy way of viewing the Top five genres by gross revenue. Use the
+        solution from the problem above to create a view. If you havent solved 7h, you can substitute another query to create a view. """
+    assert str(View(
+        name="top_five_genres",
+        compact=False,
+        query=Query(
+            compact=False,
+            table="payment",
+            cols=(sum("amount").alias("<:total_sales"), "name:genre"),
+            joins=(("rental", "rental_id"), ("inventory", "inventory_id"), ("film_category", "film_id"), ("category", "category_id")),
+            groups=("name",),
+            limit=5
+        ))) == """\
+CREATE VIEW top_five_genres AS
+SELECT SUM(amount) AS total_sales, name AS genre
+FROM payment
+INNER JOIN rental
+USING rental_id
+INNER JOIN inventory
+USING inventory_id
+INNER JOIN film_category
+USING film_id
+INNER JOIN category
+USING category_id
+GROUP BY name
+ORDER BY total_sales DESC
+LIMIT 5
+"""
 
-#   CREATE VIEW top_five_genres AS
-#   SELECT SUM(amount) AS "Total Sales", c.name AS "Genre"
-#   FROM payment p
-#   JOIN rental r
-#   ON (p.rental_id = r.rental_id)
-#   JOIN inventory i
-#   ON (r.inventory_id = i.inventory_id)
-#   JOIN film_category fc
-#   ON (i.film_id = fc.film_id)
-#   JOIN category c
-#   ON (fc.category_id = c.category_id)
-#   GROUP BY c.name
-#   ORDER BY SUM(amount) DESC
-#   LIMIT 5;
 
-# 8b. How would you display the view that you created in 8a?
+def test_query_8b():
+    """ How would you display the view that you created in 8a? """
+    assert str(Query(
+        compact=False,
+        table="top_five_genres"
+    )) == """\
+SELECT *
+FROM top_five_genres
+"""
 
-#   SELECT *
-#   FROM top_five_genres;
 
-# 8c. You find that you no longer need the view `top_five_genres`. Write a query to delete it.
-
-#   DROP VIEW top_five_genres;
+def test_query_8c():
+    """ How would you display the view that you created in 8a? """
+    assert str(View(
+        name="top_five_genres",
+        mode=ViewMode.Drop,
+        compact=False,
+    )) == """\
+DROP VIEW top_five_genres
+"""
