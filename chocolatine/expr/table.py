@@ -1,9 +1,8 @@
 import re
-
 from typing import Self
-from typeguard import typechecked
 
-from .choc_expr import ChocExpr
+from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 
 @typechecked

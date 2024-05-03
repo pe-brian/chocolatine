@@ -1,9 +1,10 @@
 from typing import Iterable
+
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 from ..join_type import JoinType
 from .table import Table
-from .choc_expr import ChocExpr
 from .condition import Condition
 
 

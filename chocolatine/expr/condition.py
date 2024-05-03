@@ -6,9 +6,9 @@ if TYPE_CHECKING:
     from .when import When
 
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 from ..utils import quote_expr
-from . import ChocExpr
 from ..operator import Operator
 
 

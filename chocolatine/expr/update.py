@@ -1,6 +1,6 @@
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
-from .choc_expr import ChocExpr
 from .table import Table
 
 
