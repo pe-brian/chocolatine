@@ -1,8 +1,9 @@
 from typing import Iterable
+
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 from .col import Col
-from .choc_expr import ChocExpr
 
 
 @typechecked

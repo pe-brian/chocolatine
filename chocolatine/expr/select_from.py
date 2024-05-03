@@ -6,11 +6,10 @@ if TYPE_CHECKING:
     from .col import Col
 
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 from .from_expr import FromExpr
 from .select import Select
-
-from .choc_expr import ChocExpr
 
 
 @typechecked

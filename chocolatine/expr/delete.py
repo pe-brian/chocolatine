@@ -1,6 +1,5 @@
 from typeguard import typechecked
-
-from .choc_expr import ChocExpr
+from choc_expr import Expr as ChocExpr
 
 
 @typechecked
