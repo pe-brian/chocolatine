@@ -1,4 +1,4 @@
-name: validate-dev-push
+name: tests
 on:
   push:
     branches: [ "dev", "main" ]
