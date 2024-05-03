@@ -1,4 +1,4 @@
-from .choc_expr import ChocExpr
+from choc_expr import Expr as ChocExpr
 
 
 class Union(ChocExpr):

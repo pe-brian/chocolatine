@@ -6,11 +6,10 @@ if TYPE_CHECKING:
     from .condition import Condition
 
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 from .update import Update
 from .set import Set
-
-from .choc_expr import ChocExpr
 
 
 @typechecked
