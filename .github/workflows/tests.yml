@@ -1,9 +1,9 @@
 name: validate-dev-push
 on:
   push:
-    branches: [ "dev" ]
+    branches: [ "dev", "main" ]
   pull_request:
-    branches: [ "dev" ]
+    branches: [ "dev", "main" ]
 permissions:
   contents: read
 jobs:
