@@ -8,9 +8,9 @@ if TYPE_CHECKING:
     from .query import Query
 
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 from .when import When
-from .choc_expr import ChocExpr
 from .condition import Condition
 from ..operator import Operator
 from ..ordering import Ordering

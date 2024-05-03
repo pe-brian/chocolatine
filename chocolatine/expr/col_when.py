@@ -1,8 +1,8 @@
 from typing import Iterable
 
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
-from .choc_expr import ChocExpr
 from .col import Col
 from ..utils import quote_expr
 

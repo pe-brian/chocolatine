@@ -1,6 +1,7 @@
+from choc_expr import Expr as ChocExpr
+
 from ..expr.query import Query
 from ..view_mode import ViewMode
-from .choc_expr import ChocExpr
 
 
 class View(ChocExpr):

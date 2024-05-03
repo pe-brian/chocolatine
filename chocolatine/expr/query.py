@@ -1,6 +1,7 @@
 from typing import Iterable, Self, Tuple
 
 from typeguard import typechecked
+from choc_expr import Expr as ChocExpr
 
 from .delete_from import DeleteFrom
 from ..query_mode import QueryMode
@@ -12,7 +13,6 @@ from .where import Where
 from .select_from import SelectFrom
 from .limit import Limit
 from ..agg_function import AggFunction
-from .choc_expr import ChocExpr
 from ..join_type import JoinType
 from .condition import Condition
 from .col import Col
