@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable, Self, TYPE_CHECKING
+from typing import Any, Iterable, Self, TYPE_CHECKING
+
 
 
 if TYPE_CHECKING:
@@ -12,6 +13,7 @@ from choc_expr import Expr as ChocExpr
 
 from .when import When
 from .condition import Condition
+from ..sql_type import SqlType
 from ..operator import Operator
 from ..ordering import Ordering
 from ..agg_function import AggFunction
@@ -28,7 +30,8 @@ class Col(ChocExpr):
             agg_function: AggFunction | None = None,
             sql_function: SqlFunction | None = None,
             ordering: Ordering | None = None,
-            table_name: str | None = None
+            table_name: str | None = None,
+            type: SqlType | None = None
     ) -> None:
         if not name:
             raise ValueError("The name parameter must not be empty")
@@ -38,7 +41,6 @@ class Col(ChocExpr):
         elif name.startswith(">:"):
             name = name[2:]
             ordering = Ordering.Ascending
-
         if name != "*":
             match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s()]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)
             if not match:
@@ -62,6 +64,7 @@ class Col(ChocExpr):
         self._alias = alias
         self._table_name = table_name
         self._name = name
+        self._type = type
 
         super().__init__("{full_name}@{_alias}: AS {_alias}:;")
 
@@ -76,6 +79,10 @@ class Col(ChocExpr):
         if self._sql_function:
             return f"{self._sql_function.value}({f"{name}"})"
         return f"{name}"
+    
+    @property
+    def creation_name(self):
+        return f"{self._name} {self._type.value}"
 
     def copy(self) -> Self:
         """ Copy the column """

@@ -37,44 +37,71 @@ class Query(ChocExpr):
             filters: Iterable[Condition] | None = None,
             assignations: Iterable[Condition] | None = None
     ) -> None:
-        if cols is None:
-            cols = []
-        if joins is None:
-            joins = []
-        if groups is None:
-            groups = []
-        if filters is None:
-            filters = []
-        if assignations is None:
-            assignations = []
-        if query_mode == QueryMode.Select and assignations:
-            raise ValueError("You cannot have update assignations in read query mode")
-        elif query_mode == QueryMode.Update and cols:
-            raise ValueError("You cannot have update cols in update query mode")
-        self._query_mode = query_mode
-        self._select_from = SelectFrom(table=table, unique=unique, compact=False)
-        self._order_by = OrderBy(select=self._select_from.select, compact=False)
-        self._group_by = GroupBy(compact=False)
-        self._limit = Limit(length=limit, compact=False)
-        self._where = Where(compact=False)
-        self._having = Having(compact=False)
-        self._joins = []
+        """"""
         self._compact = compact
-        self._update_set = UpdateSet(table=table, assignations=assignations, compact=compact)
-        self._delete_from = DeleteFrom(table=table, compact=compact)
-        if joins:
-            self.join_many(*joins)
-        if cols and query_mode == QueryMode.Select:
-            self.select(*cols)
-        if groups:
-            self.group_by(*groups)
-        for filter in filters:
-            self.filter(filter)
-        super().__init__(
-            "@{update_mode}:{_update_set~}:;@{delete_mode}:{_delete_from~}:;@{read_mode}:{_select_from~}{$(_joins)~}:;{_where~}@{read_mode}:{_group_by~}{_having~}{_order_by~}{_limit~}:;",
-            list_join_sep="\n",
-            compact=compact
-        )
+        self._query_mode = query_mode
+        self._table = table
+        match query_mode:
+            case QueryMode.Create:
+                if cols is None:
+                    cols = []
+                self._cols = cols
+                super().__init__(
+                    "CREATE TABLE {_table}~({$(_cols).creation_name})",
+                    compact=compact
+                )
+            case QueryMode.Delete:
+                self._delete_from = DeleteFrom(table=table, compact=compact)
+                if filters is None:
+                    filters = []
+                for filter in filters:
+                    self.filter(filter)
+                self._where = Where(compact=False)
+                super().__init__(
+                    "{_delete_from~}{_where~}",
+                    list_join_sep="\n",
+                    compact=compact
+                )
+            case QueryMode.Update:
+                self._update_set = UpdateSet(table=table, assignations=assignations or [], compact=compact)
+                self._where = Where(compact=False)
+                if filters is None:
+                    filters = []
+                for filter in filters:
+                    self.filter(filter)
+                super().__init__(
+                    "{_update_set~}{_where~}",
+                    list_join_sep="\n",
+                    compact=compact
+                )
+            case QueryMode.Select:
+                if cols is None:
+                    cols = []
+                self._select_from = SelectFrom(table=table, unique=unique, compact=False)
+                self.select(*cols)
+                self._joins = []
+                if joins is None:
+                    joins = []
+                if joins:
+                    self.join_many(*joins)
+                self._order_by = OrderBy(select=self._select_from.select, compact=False)
+                if groups is None:
+                    groups = []
+                self._group_by = GroupBy(compact=False)
+                if groups:
+                    self.group_by(*groups)
+                self._limit = Limit(length=limit, compact=False)
+                self._where = Where(compact=False)
+                if filters is None:
+                    filters = []
+                self._having = Having(compact=False)
+                for filter in filters:
+                    self.filter(filter)
+                super().__init__(
+                    "{_select_from~}{$(_joins)~}{_where~}{_group_by~}{_having~}{_order_by~}{_limit~}",
+                    list_join_sep="\n",
+                    compact=compact
+                )
 
     @property
     def read_mode(self) -> bool:
@@ -95,19 +122,12 @@ class Query(ChocExpr):
 
     def select(self, *vals: str | Col) -> Self:
         """ Set the selected cols """
-        self._query_mode = QueryMode.Select
         self._select_from.select.cols = vals
         return self
 
     def update(self, *assignations: Condition) -> Self:
         """ Update """
-        self._query_mode = QueryMode.Update
         self._update_set._set.assignations = assignations
-        return self
-
-    def delete(self) -> Self:
-        """ Delete """
-        self._query_mode = QueryMode.Delete
         return self
 
     def distinct(self) -> Self:

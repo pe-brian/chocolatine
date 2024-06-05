@@ -3,6 +3,8 @@ from enum import Enum
 
 class QueryMode(Enum):
 
-    Select = 1
-    Update = 2
-    Delete = 3
+    Select = "SELECT"
+    Update = "UPDATE"
+    Delete = "DELETE"
+    Create = "CREATE"
+    Alter = "ALTER"
