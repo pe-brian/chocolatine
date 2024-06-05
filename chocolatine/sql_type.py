@@ -1,9 +1,7 @@
 from enum import Enum
 
-
-class Type(Enum):
+class SqlType(Enum):
 
     Integer = "INT"
     String = "VARCHAR(255)"
-    Date = "DATE"
     Float = "FLOAT"
