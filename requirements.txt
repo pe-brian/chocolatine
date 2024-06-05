@@ -1,2 +1,2 @@
 typeguard==4.1.5
-choc-expr==1.0
+choc-expr==1.3
