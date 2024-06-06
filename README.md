@@ -8,7 +8,7 @@
 
 ![Image](logo.jpg)
 
-Chocolatine is a lightweight python library designed to easily generate SQL queries.
+Chocolatine is a python library for dynamicaly generate SQL queries.
 
 # Why Chocolatine ?
 
@@ -90,52 +90,53 @@ INNER JOIN actor
 USING actor_id
 ```
 
-_Note : Random aliases have been used to remove ambiguity on joins clauses. You can always define your own aliases instead._
-
 # SQL dialect
 
 For now, Chocolatine is only designed to generate MySQL queries.
-It is not excluded that in the future it will be compatible with Sqlite3, SqlServer or postgreSQL
 
 # Basic functionnalities
 
-- Select, Update & delete queries
+- Select, Update, Create & Delete queries
 - Distinct
-- Names aliases
-- Columns ordering
+- Limit
+- Aliases
+- Ordering
 - Group by & aggregations
 - Joins
 - SQL functions
 - Concatenations
 - Unions
 - Case-When
+- Where / Having
 
 # Advanced functionnalities
 
 - Dynamic type checking
-- Use of : or @ in col or table name directly for alias
 - Protection against SQL injection attacks
 - Calls orders doesn't matter (except for join clauses)
 - Compact or extended SQL expressions
-- Whole system to deal with conditions (logical operators, boolean operators, priority order)
+- Whole system to deal with conditions :
+    - Logical operators : equal, not equal, greater, lower, etc...
+    - Boolean operators : and, or, not
+    - Priority order with parenthesis
 - Automatic handling of filter conditions to fill the having or where clause depending on the given columns
-- Shortcut functions : Asc, Desc, Sum, Count, Upper, Lower, Concat, Second, Minute, Hour, Day, Month, Year
-- \>: or <: at first position in column name (or alias) in select to set the ordering
-- \>\> operator to perform a "like" condition on a column
-- << operator to perform a "in" condition on a column
+- Shortcuts:
+    - Alias on column/table name
+    - Help functions : Asc, Desc, Sum, Count, Upper, Lower, Concat, Second, Minute, Hour, Day, Month, Year
+    - Column ordering
+    - Like/In
 - Nested queries
-- "ChocExpr" mini langage for SQL queries templating :
-    - Conditions
-    - Basic loops (with unpacking lists)
+- Choc-expr expression for SQL queries templating
+
+# Choc-expr library
+
+- Choc-expr is a mini templating librairie specially designed to handle such complex langage as SQL
+- It is a very conscise language designed for easy reading
+- See https://github.com/pe-brian/choc-expr for more informations
 
 # To-do
 
-- Equality evaluation in ChocExpr if statements
-- Option to disable dynamic type checking (for performance concerns)
-- Create queries
-- SQLServer compatibility
-- PostGreSQL compatibility
-- SQLite3 compatibility
+- Alter queries
 
 # Tests
 
