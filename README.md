@@ -96,7 +96,7 @@ For now, Chocolatine is only designed to generate MySQL queries.
 
 # Basic functionnalities
 
-- Select, Update, Create & Delete queries
+- Select, Insert, Update, Create, Alter & Delete queries
 - Distinct
 - Limit
 - Aliases
@@ -125,6 +125,7 @@ For now, Chocolatine is only designed to generate MySQL queries.
     - Help functions : Asc, Desc, Sum, Count, Upper, Lower, Concat, Second, Minute, Hour, Day, Month, Year
     - Column ordering
     - Like/In
+- Auto id on create queries (optionnal)
 - Nested queries
 - Choc-expr expression for SQL queries templating
 
@@ -133,10 +134,6 @@ For now, Chocolatine is only designed to generate MySQL queries.
 - Choc-expr is a mini templating librairie specially designed to handle such complex langage as SQL
 - It is a very conscise language designed for easy reading
 - See https://github.com/pe-brian/choc-expr for more informations
-
-# To-do
-
-- Alter queries
 
 # Tests
 

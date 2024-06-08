@@ -1,4 +1,5 @@
 from chocolatine import Query, Col as _, month, year, sum, count, QueryMode, When, View, ViewMode
+from chocolatine.sql_type import SqlType
 
 
 def test_query_1a():
@@ -81,21 +82,43 @@ WHERE (country IN ('Afghanistan', 'Bangladesh', 'China'))
 """
 
 
-# 3a. Add a `middle_name` column to the table `actor`. Position it between `first_name` and `last_name`. Hint: you will need to
-# specify the data type.
+def test_query_3a():
+    """ Add a `middle_name` column to the table `actor`. Position it between `first_name` and `last_name`. Hint: you will need to specify the data type. """
+    assert str(Query.add_col(
+        compact=False,
+        table="actor",
+        col=_("middle_name", type=SqlType.String),
+        after=_("first_name")
+    )) == """\
+ALTER TABLE actor
+ADD COLUMN middle_name VARCHAR(255) AFTER first_name
+"""
 
-#   ALTER TABLE actor
-# 	ADD middle_name VARCHAR(25) AFTER first_name;
 
-# 3b. You realize that some of these actors have tremendously long last names. Change the data type of the `middle_name` column to
-# `blobs`.
+def test_query_3b():
+    """ You realize that some of these actors have tremendously long last names. Change the data type of the `middle_name` column to `blobs` """
+    assert str(Query.rename_col(
+        compact=False,
+        table="actor",
+        col="middle_name",
+        new_col="blob"
+    )) == """\
+ALTER TABLE actor
+RENAME COLUMN middle_name blob
+"""
 
-#   ALTER TABLE actor
-# 	MODIFY COLUMN middle_name blob;
 
-# 3c. Now delete the `middle_name` column.
-#   ALTER TABLE actor
-# 	DROP COLUMN middle_name;
+def test_query_3c():
+    """ Now delete the `middle_name` column. """
+    assert str(Query.drop_col(
+        compact=False,
+        table="actor",
+        col="middle_name"
+    )) == """\
+ALTER TABLE actor
+DROP COLUMN middle_name
+"""
+
 
 def test_query_4a():
     """ How to list the last names of actors, as well as how many actors have that last name ? """
