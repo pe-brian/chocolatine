@@ -8,3 +8,4 @@ class QueryMode(Enum):
     Delete = "DELETE"
     Create = "CREATE"
     Alter = "ALTER"
+    Insert = "INSERT"

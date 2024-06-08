@@ -1,10 +1,11 @@
-from typing import Iterable, Self, Tuple
+from typing import Any, Iterable, Self, Tuple
 
 from typeguard import typechecked
 from choc_expr import Expr as ChocExpr
 
 from .delete_from import DeleteFrom
 from ..query_mode import QueryMode
+from ..alter_mode import AlterMode
 from .join import Join
 from .order_by import OrderBy
 from .group_by import GroupBy
@@ -24,6 +25,7 @@ from .union import Union
 @typechecked
 class Query(ChocExpr):
     """ Handler to generate a SQL query """
+
     def __init__(
             self,
             query_mode: QueryMode = QueryMode.Select,
@@ -35,7 +37,13 @@ class Query(ChocExpr):
             cols: Iterable[str | Col] | None = None,
             groups: Iterable[str] | None = None,
             filters: Iterable[Condition] | None = None,
-            assignations: Iterable[Condition] | None = None
+            assignations: Iterable[Condition] | None = None,
+            values: Iterable[Iterable[Any]] | None = None,
+            auto_id: bool = False,
+            alter_mode: AlterMode | None = None,
+            alter_col: Col | str | None = None,
+            alter_new_col: Col | str | None = None,
+            alter_col_after: Col | str | None = None
     ) -> None:
         """"""
         self._compact = compact
@@ -43,13 +51,57 @@ class Query(ChocExpr):
         self._table = table
         match query_mode:
             case QueryMode.Create:
+                self._auto_id = auto_id
                 if cols is None:
                     cols = []
                 self._cols = cols
                 super().__init__(
-                    "CREATE TABLE {_table}~({$(_cols).creation_name})",
+                    "CREATE TABLE {_table}~(@{_auto_id}:id MEDIUMINT NOT NULL AUTO_INCREMENT, :;{$(_cols).creation_name}@{_auto_id}:, PRIMARY KEY (id):;)",
                     compact=compact
                 )
+            case QueryMode.Insert:
+                if cols is None:
+                    cols = []
+                self._cols = cols
+                if values is None:
+                    values = []
+                self._values = values
+                super().__init__(
+                    "INSERT INTO {_table} ({$(_cols)})~VALUES ({$(_values)})",
+                    compact=compact
+                )
+            case QueryMode.Alter:
+                self._alter_mode = alter_mode
+                if isinstance(alter_col, str):
+                    alter_col = Col(alter_col)
+                if isinstance(alter_col_after, str):
+                    alter_col_after = Col(alter_col_after)
+                if isinstance(alter_new_col, str):
+                    alter_new_col = Col(alter_new_col)
+                self._alter_col = alter_col
+                self._alter_col_after = alter_col_after
+                self._alter_new_col = alter_new_col
+                match alter_mode:
+                    case AlterMode.Add:
+                        super().__init__(
+                            "ALTER TABLE {_table}~ADD COLUMN {_alter_new_col.creation_name}@{_alter_col_after}: AFTER {_alter_col_after}:;~",
+                            compact=compact
+                        )
+                    case AlterMode.Drop:
+                        super().__init__(
+                            "ALTER TABLE {_table}~DROP COLUMN {_alter_col}~",
+                            compact=compact
+                        )
+                    case AlterMode.Rename:
+                        super().__init__(
+                            "ALTER TABLE {_table}~RENAME COLUMN {_alter_col} {_alter_new_col}~",
+                            compact=compact
+                        )
+                    case AlterMode.Change:
+                        super().__init__(
+                            "ALTER TABLE {_table}~CHANGE COLUMN {_alter_col} {_alter_new_col.creation_name}~",
+                            compact=compact
+                        )
             case QueryMode.Delete:
                 self._delete_from = DeleteFrom(table=table, compact=compact)
                 if filters is None:
@@ -102,6 +154,91 @@ class Query(ChocExpr):
                     list_join_sep="\n",
                     compact=compact
                 )
+
+    @staticmethod
+    def alter_table(
+        table: str | Table,
+        alter_mode: AlterMode,
+        col: Col | str | None = None,
+        new_col: Col | str | None = None,
+        after: Col | str | None = None,
+        compact: bool = True
+    ):
+        """"""
+        return Query(query_mode=QueryMode.Alter, alter_mode=alter_mode, table=table, alter_col=col, alter_new_col=new_col, alter_col_after=after, compact=compact)
+    
+    @staticmethod
+    def add_col(
+        table: str | Table,
+        col: Col,
+        after: Col | str | None = None,
+        compact: bool = True
+    ):
+        """"""
+        return Query.alter_table(table=table, alter_mode=AlterMode.Add, new_col=col, after=after, compact=compact)
+    
+    @staticmethod
+    def rename_col(
+        table: str | Table,
+        col: Col | str,
+        new_col: Col | str,
+        compact: bool = True
+    ):
+        """"""
+        return Query.alter_table(table=table, alter_mode=AlterMode.Rename, col=col, new_col=new_col, compact=compact)
+    
+    @staticmethod
+    def change_col(
+        table: str | Table,
+        col: Col | str,
+        new_col: Col | str,
+        compact: bool = True
+    ):
+        """"""
+        return Query.alter_table(table=table, alter_mode=AlterMode.Change, col=col, new_col=new_col, compact=compact)
+    
+    @staticmethod
+    def drop_col(
+        table: str | Table,
+        col: Col | str,
+        compact: bool = True
+    ):
+        """"""
+        return Query.alter_table(table=table, alter_mode=AlterMode.Drop, col=col, compact=compact)
+    
+    @staticmethod
+    def insert_row(
+        table: str | Table,
+        cols: Iterable[Col],
+        row: Iterable[Any],
+        compact: bool = True
+    ):
+        """"""
+        return Query(query_mode=QueryMode.Insert, table=table, cols=cols, values=(row,), compact=compact)
+    
+    @staticmethod
+    def insert_rows(table: str | Table, cols: Iterable[Col], rows: Iterable[Iterable[Any]], compact: bool = True):
+        """"""
+        return Query(query_mode=QueryMode.Insert, table=table, cols=cols, values=rows, compact=compact)
+    
+    @staticmethod
+    def delete_rows(table: str | Table, filters: Iterable[Condition], compact: bool = True):
+        """"""
+        return Query(query_mode=QueryMode.Delete, table=table, filters=filters, compact=compact)
+    
+    @staticmethod
+    def update_rows(table: str | Table, filters: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
+        """"""
+        return Query(query_mode=QueryMode.Delete, table=table, filters=filters, assignations=assignations, compact=compact)
+    
+    @staticmethod
+    def create_table(table: str | Table, cols: Iterable[Col], auto_id: bool = False, compact: bool = True):
+        """"""
+        return Query(table=table, cols=cols, auto_id=auto_id, compact=compact)
+
+    def compact(self):
+        """"""
+        self._compact = True
 
     @property
     def read_mode(self) -> bool:
