@@ -8,4 +8,5 @@ from .join_type import JoinType  # noqa
 from .utils import quote_expr, to_bool  # noqa
 from .shortcut import concat, count, sum, asc, desc, upper, lower, second, minute, hour, day, month, year  # noqa
 from .query_mode import QueryMode  # noqa
+from .alter_mode import AlterMode  # noqa
 from .view_mode import ViewMode  # noqa
