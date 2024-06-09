@@ -66,7 +66,21 @@ def test_query_alter_table_drop_col():
     ).build() == "ALTER TABLE people DROP COLUMN country"
 
 
-def test_query_insert_into_table():
+def test_query_insert_row_into_table():
+    assert Query.insert_row(
+        table="people",
+        cols=(
+            _("first_name", type=SqlType.String),
+            _("last_name", type=SqlType.String),
+            _("age", type=SqlType.Integer),
+            _("gender", type=SqlType.String),
+            _("city", type=SqlType.String)
+        ),
+        row=("jean", "mercier", 25, "M", "Toulouse")
+    ).build() == "INSERT INTO people (first_name, last_name, age, gender, city) VALUES ('jean', 'mercier', 25, 'M', 'Toulouse')"
+
+
+def test_query_insert_rows_into_table():
     assert Query.insert_rows(
         table="people",
         cols=(
@@ -81,4 +95,4 @@ def test_query_insert_into_table():
             ("paul", "fabre", 18, "M", "Paris"),
             ("nathalie", "martin", 32, "F", "Bordeaux")
         )
-    ).build() == "INSERT INTO people (first_name, last_name, age, gender, city) VALUES (('jean', 'mercier', 25, 'M', 'Toulouse'), ('paul', 'fabre', 18, 'M', 'Paris'), ('nathalie', 'martin', 32, 'F', 'Bordeaux'))"
+    ).build() == "INSERT INTO people (first_name, last_name, age, gender, city) VALUES ('jean', 'mercier', 25, 'M', 'Toulouse'), ('paul', 'fabre', 18, 'M', 'Paris'), ('nathalie', 'martin', 32, 'F', 'Bordeaux')"
