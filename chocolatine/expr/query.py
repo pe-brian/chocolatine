@@ -67,7 +67,7 @@ class Query(ChocExpr):
                     values = []
                 self._values = values
                 super().__init__(
-                    "INSERT INTO {_table} ({$(_cols)})~VALUES ({$(_values)})",
+                    "INSERT INTO {_table} ({$(_cols)})~VALUES {$(_values)}",
                     compact=compact
                 )
             case QueryMode.Alter:
