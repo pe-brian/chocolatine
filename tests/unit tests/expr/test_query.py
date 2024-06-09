@@ -2,8 +2,7 @@ from chocolatine import Query, QueryMode, Col as _, SqlType
 
 
 def test_query_create_table():
-    assert Query(
-        query_mode=QueryMode.Create,
+    assert Query.create_table(
         table="people",
         cols=(
             _("first_name", type=SqlType.String),
@@ -16,8 +15,7 @@ def test_query_create_table():
 
 
 def test_query_create_table_with_auto_id():
-    assert Query(
-        query_mode=QueryMode.Create,
+    assert Query.create_table(
         table="people",
         cols=(
             _("first_name", type=SqlType.String),
@@ -69,8 +67,7 @@ def test_query_alter_table_drop_col():
 
 
 def test_query_insert_into_table():
-    assert Query(
-        query_mode=QueryMode.Insert,
+    assert Query.insert_rows(
         table="people",
         cols=(
             _("first_name", type=SqlType.String),
@@ -79,7 +76,7 @@ def test_query_insert_into_table():
             _("gender", type=SqlType.String),
             _("city", type=SqlType.String)
         ),
-        values=(
+        rows=(
             ("jean", "mercier", 25, "M", "Toulouse"),
             ("paul", "fabre", 18, "M", "Paris"),
             ("nathalie", "martin", 32, "F", "Bordeaux")
