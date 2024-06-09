@@ -234,7 +234,7 @@ class Query(ChocExpr):
     @staticmethod
     def create_table(table: str | Table, cols: Iterable[Col], auto_id: bool = False, compact: bool = True):
         """"""
-        return Query(table=table, cols=cols, auto_id=auto_id, compact=compact)
+        return Query(query_mode=QueryMode.Create, table=table, cols=cols, auto_id=auto_id, compact=compact)
 
     def compact(self):
         """"""
