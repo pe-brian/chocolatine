@@ -86,3 +86,20 @@ def test_col_like():
 def test_col_in():
     assert _("fruit").isin(("banana", "apple", "strawberry")).build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
     assert (_("fruit") << ("banana", "apple", "strawberry")).build() == "(fruit IN ('banana', 'apple', 'strawberry'))"
+
+
+def test_col_greater_than():
+    assert (_("age") > 25).build() == "(age > 25)"
+
+
+def test_col_greater_or_equal_than():
+    assert (_("age") >= 25).build() == "(age >= 25)"
+    
+
+def test_col_lower_than():
+    assert (_("age") < 25).build() == "(age < 25)"
+
+
+def test_col_lower_or_equal_than():
+    assert (_("age") <= 25).build() == "(age <= 25)"
+

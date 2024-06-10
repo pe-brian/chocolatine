@@ -106,9 +106,11 @@ class Query(ChocExpr):
                 self._delete_from = DeleteFrom(table=table, compact=compact)
                 if filters is None:
                     filters = []
+                self._where = Where(condition=filters[0], compact=False)
                 for filter in filters:
                     self.filter(filter)
-                self._where = Where(compact=False)
+                for filter in filters:
+                    self.filter(filter)
                 super().__init__(
                     "{_delete_from~}{_where~}",
                     list_join_sep="\n",
@@ -217,19 +219,51 @@ class Query(ChocExpr):
         return Query(query_mode=QueryMode.Insert, table=table, cols=cols, values=(row,), compact=compact)
     
     @staticmethod
-    def insert_rows(table: str | Table, cols: Iterable[Col], rows: Iterable[Iterable[Any]], compact: bool = True):
+    def insert_rows(
+        table: str | Table,
+        cols: Iterable[Col],
+        rows: Iterable[Iterable[Any]],
+        compact: bool = True
+    ):
         """"""
         return Query(query_mode=QueryMode.Insert, table=table, cols=cols, values=rows, compact=compact)
     
     @staticmethod
-    def delete_rows(table: str | Table, filters: Iterable[Condition], compact: bool = True):
+    def delete_rows(table: str | Table, filter: Condition, compact: bool = True):
         """"""
-        return Query(query_mode=QueryMode.Delete, table=table, filters=filters, compact=compact)
+        return Query(query_mode=QueryMode.Delete, table=table, filters=[filter], compact=compact)
     
     @staticmethod
-    def update_rows(table: str | Table, filters: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
+    def get_row(
+        table: str | Table,
+        unique: bool = False,
+        joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
+        cols: Iterable[str | Col] | None = None,
+        groups: Iterable[str] | None = None,
+        filters: Iterable[Condition] | None = None,
+        compact: bool = True
+    ):
         """"""
-        return Query(query_mode=QueryMode.Delete, table=table, filters=filters, assignations=assignations, compact=compact)
+        return Query.get_rows(table=table, limit=1, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
+    
+    @staticmethod
+    def get_rows(
+        table: str | Table,
+        limit: int | None = None,
+        unique: bool = False,
+        joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
+        cols: Iterable[str | Col] | None = None,
+        groups: Iterable[str] | None = None,
+        filters: Iterable[Condition] | None = None,
+        compact: bool = True
+    ):
+        """"""
+        return Query(query_mode=QueryMode.Select, table=table, limit=limit, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
+    
+    @staticmethod
+    def update_rows(table: str | Table, filter: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
+        """"""
+        return Query(query_mode=QueryMode.Delete, table=table, filters=[filter], assignations=assignations, compact=compact)
     
     @staticmethod
     def create_table(table: str | Table, cols: Iterable[Col], auto_id: bool = False, compact: bool = True):
