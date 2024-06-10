@@ -96,3 +96,23 @@ def test_query_insert_rows_into_table():
             ("nathalie", "martin", 32, "F", "Bordeaux")
         )
     ).build() == "INSERT INTO people (first_name, last_name, age, gender, city) VALUES ('jean', 'mercier', 25, 'M', 'Toulouse'), ('paul', 'fabre', 18, 'M', 'Paris'), ('nathalie', 'martin', 32, 'F', 'Bordeaux')"
+
+
+def test_query_delete_rows_from_table():
+    assert Query.delete_rows(
+        table="people",
+        filter=_("age") > 18
+    ).build() == "DELETE FROM people WHERE (age > 18)"
+
+
+def test_query_get_rows_from_table():
+    assert Query.get_rows(
+        table="people",
+        filters=(_("age") > 18,)
+    ).build() == "SELECT * FROM people WHERE (age > 18)"
+
+def test_query_get_row_from_table():
+    assert Query.get_row(
+        table="people",
+        filters=(_("age") > 18,)
+    ).build() == "SELECT * FROM people WHERE (age > 18) LIMIT 1"

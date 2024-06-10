@@ -97,6 +97,15 @@ class Col(ChocExpr):
 
     def __gt__(self, value: Col | int | float | When) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
+    
+    def __ge__(self, value: Col | int | float | When) -> Condition:
+        return Condition(left_value=self, op=Operator.GreaterOrEqualThan, right_value=value)
+    
+    def __lt__(self, value: Col | int | float | When) -> Condition:
+        return Condition(left_value=self, op=Operator.LowerThan, right_value=value)
+    
+    def __le__(self, value: Col | int | float | When) -> Condition:
+        return Condition(left_value=self, op=Operator.LowerOrEqualThan, right_value=value)
 
     def __eq__(self, value: Col | int | float | str | When) -> Condition:
         return Condition(left_value=self, op=Operator.Equal, right_value=value)
