@@ -98,6 +98,19 @@ def test_query_insert_rows_into_table():
     ).build() == "INSERT INTO people (first_name, last_name, age, gender, city) VALUES ('jean', 'mercier', 25, 'M', 'Toulouse'), ('paul', 'fabre', 18, 'M', 'Paris'), ('nathalie', 'martin', 32, 'F', 'Bordeaux')"
 
 
+def test_query_update_rows():
+    assert Query.update_rows(
+        table="people",
+        filters=(
+            _("id") == 42,
+        ),
+        assignations=(
+            _("name") == "bruno",
+            _("age") == 52
+        )
+    ).build() == "UPDATE people SET (name = 'bruno'), (age = 52) WHERE (id = 42)"
+
+
 def test_query_delete_rows_from_table():
     assert Query.delete_rows(
         table="people",
