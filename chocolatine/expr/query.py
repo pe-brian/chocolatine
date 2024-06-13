@@ -261,9 +261,9 @@ class Query(ChocExpr):
         return Query(query_mode=QueryMode.Select, table=table, limit=limit, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
     
     @staticmethod
-    def update_rows(table: str | Table, filter: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
+    def update_rows(table: str | Table, filters: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
         """"""
-        return Query(query_mode=QueryMode.Delete, table=table, filters=[filter], assignations=assignations, compact=compact)
+        return Query(query_mode=QueryMode.Update, table=table, filters=filters, assignations=assignations, compact=compact)
     
     @staticmethod
     def create_table(table: str | Table, cols: Iterable[Col], auto_id: bool = False, compact: bool = True):
