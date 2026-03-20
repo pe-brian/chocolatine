@@ -31,6 +31,7 @@ class Query(ChocExpr):
             query_mode: QueryMode = QueryMode.Select,
             compact: bool = True,
             limit: int | None = None,
+            offset: int | None = None,
             table: str | Table | None = None,
             unique: bool = False,
             joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
@@ -51,6 +52,7 @@ class Query(ChocExpr):
         :param query_mode: Type of query (Select, Insert, Update, Delete, Create, Alter).
         :param compact: If True, render the query on a single line.
         :param limit: Maximum number of rows to return (SELECT only).
+        :param offset: Number of rows to skip before returning results (SELECT only).
         :param table: Target table name or Table object.
         :param unique: If True, add DISTINCT to the SELECT clause.
         :param joins: List of join definitions as (table, condition[, join_type]) tuples.
@@ -161,7 +163,7 @@ class Query(ChocExpr):
                 self._group_by = GroupBy(compact=False)
                 if groups:
                     self.group_by(*groups)
-                self._limit = Limit(length=limit, compact=False)
+                self._limit = Limit(length=limit, offset=offset, compact=False)
                 self._where = Where(compact=False)
                 if filters is None:
                     filters = []
@@ -267,6 +269,7 @@ class Query(ChocExpr):
     def get_rows(
         table: str | Table,
         limit: int | None = None,
+        offset: int | None = None,
         unique: bool = False,
         joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
         cols: Iterable[str | Col] | None = None,
@@ -274,8 +277,8 @@ class Query(ChocExpr):
         filters: Iterable[Condition] | None = None,
         compact: bool = True
     ):
-        """ Select rows, with optional filters, joins, grouping, and limit """
-        return Query(query_mode=QueryMode.Select, table=table, limit=limit, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
+        """ Select rows, with optional filters, joins, grouping, limit, and offset """
+        return Query(query_mode=QueryMode.Select, table=table, limit=limit, offset=offset, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
     
     @staticmethod
     def update_rows(table: str | Table, filters: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
@@ -326,6 +329,11 @@ class Query(ChocExpr):
     def head(self, length: int = 1) -> Self:
         """ Filter on the first N rows """
         self._limit = Limit(length=length, compact=False)
+        return self
+
+    def offset(self, offset: int) -> Self:
+        """ Skip the first N rows """
+        self._limit = Limit(length=self._limit.length or 1, offset=offset, compact=False)
         return self
 
     def filter(self, condition: Condition) -> Self:

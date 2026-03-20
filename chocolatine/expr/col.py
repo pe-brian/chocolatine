@@ -162,6 +162,18 @@ class Col(ChocExpr):
         """ Apply the "in" operator """
         return Condition(self, Operator.In, expr)
 
+    def is_null(self) -> Condition:
+        """ Check if the column is NULL """
+        return Condition(self, Operator.IsNull)
+
+    def is_not_null(self) -> Condition:
+        """ Check if the column is not NULL """
+        return Condition(self, Operator.IsNotNull)
+
+    def between(self, low: int | float | str, high: int | float | str) -> Condition:
+        """ Check if the column value is between low and high (inclusive) """
+        return Condition(self, Operator.Between, low, between_high=high)
+
     def upper(self) -> Self:
         """ Apply the "upper" operator """
         self._sql_function = SqlFunction.Upper

@@ -13,3 +13,6 @@ class Operator(Enum):
     Or = "OR"
     Like = "LIKE"
     In = "IN"
+    IsNull = "IS NULL"
+    IsNotNull = "IS NOT NULL"
+    Between = "BETWEEN"

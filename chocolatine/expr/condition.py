@@ -19,23 +19,31 @@ class Condition(ChocExpr):
             self,
             left_value: int | float | str | Col | Self,
             op: Operator,
-            right_value: int | float | str | Col | When | Self,
-            negate: bool = False
+            right_value: int | float | str | Col | When | Self | None = None,
+            negate: bool = False,
+            between_high: int | float | str | Col | None = None
     ) -> None:
         """
         Define a SQL condition (e.g. col > 5, col LIKE '%foo%').
 
         :param left_value: Left-hand side of the expression.
         :param op: Comparison or logical operator.
-        :param right_value: Right-hand side of the expression.
+        :param right_value: Right-hand side of the expression (not used for IS NULL / IS NOT NULL).
         :param negate: If True, wrap the condition with NOT.
+        :param between_high: Upper bound for BETWEEN operator.
         """
         self._left_value = left_value
         self._op = op
         self._right_value = right_value
         self._negate = negate
+        self._between_high = between_high
 
-        super().__init__("@{negate}:NOT :;({left_val} {op} {right_val})")
+        if op in (Operator.IsNull, Operator.IsNotNull):
+            super().__init__("@{negate}:NOT :;({left_val} {op})")
+        elif op == Operator.Between:
+            super().__init__("@{negate}:NOT :;({left_val} {op} {right_val} AND {between_high_val})")
+        else:
+            super().__init__("@{negate}:NOT :;({left_val} {op} {right_val})")
 
     @property
     def negate(self):
@@ -57,6 +65,14 @@ class Condition(ChocExpr):
             pass
         return quote_expr(self._right_value)
 
+    @property
+    def between_high_val(self):
+        try:
+            return self._between_high.build()
+        except AttributeError:
+            pass
+        return quote_expr(self._between_high)
+
     def __and__(self, other: int | float | str | Col | Self) -> Self:
         return Condition(left_value=self, op=Operator.And, right_value=other)
 
@@ -70,4 +86,4 @@ class Condition(ChocExpr):
         return self.__or__(other)
 
     def __invert__(self) -> Self:
-        return Condition(left_value=self._left_value, op=self._op, right_value=self._right_value, negate=True)
+        return Condition(left_value=self._left_value, op=self._op, right_value=self._right_value, negate=True, between_high=self._between_high)
