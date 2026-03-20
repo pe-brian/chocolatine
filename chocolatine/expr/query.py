@@ -37,7 +37,7 @@ class Query(ChocExpr):
             joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
             cols: Iterable[str | Col | ChocExpr] | None = None,
             groups: Iterable[str] | None = None,
-            filters: Iterable[Condition] | None = None,
+            filters: Iterable[Condition | ChocExpr] | None = None,
             assignations: Iterable[Condition] | None = None,
             values: Iterable[Iterable[Any]] | None = None,
             auto_id: bool = False,
@@ -263,7 +263,7 @@ class Query(ChocExpr):
         joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
         cols: Iterable[str | Col | ChocExpr] | None = None,
         groups: Iterable[str] | None = None,
-        filters: Iterable[Condition] | None = None,
+        filters: Iterable[Condition | ChocExpr] | None = None,
         compact: bool = True
     ):
         """ Select a single row (LIMIT 1) """
@@ -278,7 +278,7 @@ class Query(ChocExpr):
         joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
         cols: Iterable[str | Col | ChocExpr] | None = None,
         groups: Iterable[str] | None = None,
-        filters: Iterable[Condition] | None = None,
+        filters: Iterable[Condition | ChocExpr] | None = None,
         compact: bool = True
     ):
         """ Select rows, with optional filters, joins, grouping, limit, and offset """
@@ -350,7 +350,7 @@ class Query(ChocExpr):
         self._limit = Limit(length=self._limit.length or 1, offset=offset, compact=False)
         return self
 
-    def filter(self, condition: Condition) -> Self:
+    def filter(self, condition: Condition | ChocExpr) -> Self:
         """ Filter the rows according to the given condition """
         if any(x in condition.build() for x in set(e.value for e in AggFunction)):
             self._having.condition = condition

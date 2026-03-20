@@ -21,3 +21,4 @@ from .delete_from import DeleteFrom  # noqa
 from .union import Union  # noqa
 from .view import View  # noqa
 from .coalesce import Coalesce  # noqa
+from .exists import Exists  # noqa
