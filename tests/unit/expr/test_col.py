@@ -185,6 +185,50 @@ def test_col_aggregate():
     assert _("amount").aggregate(AggFunction.Average).build() == "AVG(amount)"
 
 
+def test_col_trim():
+    assert _("name").trim().build() == "TRIM(name)"
+
+
+def test_col_ltrim():
+    assert _("name").ltrim().build() == "LTRIM(name)"
+
+
+def test_col_rtrim():
+    assert _("name").rtrim().build() == "RTRIM(name)"
+
+
+def test_col_length():
+    assert _("name").length().build() == "LENGTH(name)"
+
+
+def test_col_reverse():
+    assert _("name").reverse().build() == "REVERSE(name)"
+
+
+def test_col_abs():
+    assert _("score").abs().build() == "ABS(score)"
+
+
+def test_col_round():
+    assert _("score").round().build() == "ROUND(score)"
+
+
+def test_col_floor():
+    assert _("score").floor().build() == "FLOOR(score)"
+
+
+def test_col_ceiling():
+    assert _("score").ceiling().build() == "CEILING(score)"
+
+
+def test_col_date():
+    assert _("created_at").date().build() == "DATE(created_at)"
+
+
+def test_col_md5():
+    assert _("password").md5().build() == "MD5(password)"
+
+
 def test_col_count_distinct():
     assert _("customer_id").count_distinct().build() == "COUNT(DISTINCT customer_id)"
 

@@ -194,13 +194,68 @@ class Col(ChocExpr):
         return Condition(self, Operator.Between, low, between_high=high)
 
     def upper(self) -> Self:
-        """ Apply the "upper" operator """
+        """ Apply the UPPER function """
         self._sql_function = SqlFunction.Upper
         return self
 
     def lower(self) -> Self:
-        """ Apply the "lower" operator """
+        """ Apply the LOWER function """
         self._sql_function = SqlFunction.Lower
+        return self
+
+    def trim(self) -> Self:
+        """ Apply the TRIM function """
+        self._sql_function = SqlFunction.Trim
+        return self
+
+    def ltrim(self) -> Self:
+        """ Apply the LTRIM function """
+        self._sql_function = SqlFunction.LTrim
+        return self
+
+    def rtrim(self) -> Self:
+        """ Apply the RTRIM function """
+        self._sql_function = SqlFunction.RTrim
+        return self
+
+    def length(self) -> Self:
+        """ Apply the LENGTH function """
+        self._sql_function = SqlFunction.Length
+        return self
+
+    def reverse(self) -> Self:
+        """ Apply the REVERSE function """
+        self._sql_function = SqlFunction.Reverse
+        return self
+
+    def abs(self) -> Self:
+        """ Apply the ABS function """
+        self._sql_function = SqlFunction.Abs
+        return self
+
+    def round(self) -> Self:
+        """ Apply the ROUND function """
+        self._sql_function = SqlFunction.Round
+        return self
+
+    def floor(self) -> Self:
+        """ Apply the FLOOR function """
+        self._sql_function = SqlFunction.Floor
+        return self
+
+    def ceiling(self) -> Self:
+        """ Apply the CEILING function """
+        self._sql_function = SqlFunction.Ceiling
+        return self
+
+    def date(self) -> Self:
+        """ Apply the DATE function (extract date part from datetime) """
+        self._sql_function = SqlFunction.Date
+        return self
+
+    def md5(self) -> Self:
+        """ Apply the MD5 function """
+        self._sql_function = SqlFunction.MD5
         return self
 
     def alias(self, name: str) -> Self:
