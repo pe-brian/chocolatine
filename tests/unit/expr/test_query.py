@@ -190,3 +190,11 @@ def test_query_rand():
     q1 = Query.get_rows(table="a")
     q2 = Query.get_rows(table="b")
     assert q2.__rand__(q1).build() == q2.union(q1).build()
+
+
+def test_query_drop_table():
+    assert Query.drop_table(table="people").build() == "DROP TABLE people"
+
+
+def test_query_truncate():
+    assert Query.truncate(table="people").build() == "TRUNCATE TABLE people"

@@ -175,6 +175,10 @@ class Query(ChocExpr):
                     list_join_sep="\n",
                     compact=compact
                 )
+            case QueryMode.Drop:
+                super().__init__("DROP TABLE {_table}", compact=compact)
+            case QueryMode.Truncate:
+                super().__init__("TRUNCATE TABLE {_table}", compact=compact)
 
     @staticmethod
     def alter_table(
@@ -290,6 +294,16 @@ class Query(ChocExpr):
         """ Build a CREATE TABLE query """
         return Query(query_mode=QueryMode.Create, table=table, cols=cols, auto_id=auto_id, compact=compact)
 
+    @staticmethod
+    def drop_table(table: str | Table, compact: bool = True):
+        """ Build a DROP TABLE query """
+        return Query(query_mode=QueryMode.Drop, table=table, compact=compact)
+
+    @staticmethod
+    def truncate(table: str | Table, compact: bool = True):
+        """ Build a TRUNCATE TABLE query """
+        return Query(query_mode=QueryMode.Truncate, table=table, compact=compact)
+
     def compact(self):
         """ Render the query on a single line """
         self._compact = True
@@ -361,7 +375,12 @@ class Query(ChocExpr):
         return self
 
     def union(self, other_request: Self) -> Union:
+        """ Combine two queries with UNION (deduplicates rows) """
         return Union(self, other_request, compact=self._compact)
+
+    def union_all(self, other_request: Self) -> Union:
+        """ Combine two queries with UNION ALL (keeps duplicates) """
+        return Union(self, other_request, all=True, compact=self._compact)
 
     def __and__(self, other_request: Self) -> Union:
         return self.union(other_request)

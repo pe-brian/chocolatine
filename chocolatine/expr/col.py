@@ -31,7 +31,10 @@ class Col(ChocExpr):
             sql_function: SqlFunction | None = None,
             ordering: Ordering | None = None,
             table_name: str | None = None,
-            type: SqlType | None = None
+            type: SqlType | None = None,
+            not_null: bool = False,
+            unique: bool = False,
+            default: int | float | str | bool | None = None
     ) -> None:
         """
         Define a SQL column.
@@ -44,6 +47,9 @@ class Col(ChocExpr):
         :param ordering: Sort direction for ORDER BY.
         :param table_name: Table prefix for the column reference.
         :param type: SQL type, used in CREATE TABLE / ALTER TABLE contexts.
+        :param not_null: If True, add NOT NULL constraint (CREATE TABLE only).
+        :param unique: If True, add UNIQUE constraint (CREATE TABLE only).
+        :param default: Default value for the column (CREATE TABLE only).
         """
         if not name:
             raise ValueError("The name parameter must not be empty")
@@ -77,6 +83,10 @@ class Col(ChocExpr):
         self._table_name = table_name
         self._name = name
         self._type = type
+        self._not_null = not_null
+        self._unique = unique
+        self._default = default
+        self._distinct_agg = False
 
         super().__init__("{full_name}@{_alias}: AS {_alias}:;")
 
@@ -87,14 +97,23 @@ class Col(ChocExpr):
         else:
             name = f"{self._table_name + "." if self._table_name else ""}{self._name}"
         if self._agg_function:
-            return f"{self._agg_function.value}({f"{name}"})"
+            inner = f"DISTINCT {name}" if self._distinct_agg else name
+            return f"{self._agg_function.value}({inner})"
         if self._sql_function:
             return f"{self._sql_function.value}({f"{name}"})"
         return f"{name}"
     
     @property
     def creation_name(self):
-        return f"{self._name} {self._type.value}"
+        from ..utils import quote_expr
+        parts = [self._name, self._type.value]
+        if self._not_null:
+            parts.append("NOT NULL")
+        if self._unique:
+            parts.append("UNIQUE")
+        if self._default is not None:
+            parts.append(f"DEFAULT {quote_expr(self._default)}")
+        return " ".join(parts)
 
     def copy(self) -> Self:
         """ Copy the column """
@@ -195,6 +214,21 @@ class Col(ChocExpr):
         self._alias = name
         return self
 
+    def set_not_null(self, value: bool = True) -> Self:
+        """ Set NOT NULL constraint """
+        self._not_null = value
+        return self
+
+    def set_unique(self, value: bool = True) -> Self:
+        """ Set UNIQUE constraint """
+        self._unique = value
+        return self
+
+    def set_default(self, value: int | float | str | bool | None) -> Self:
+        """ Set DEFAULT value """
+        self._default = value
+        return self
+
     def remove_alias(self) -> Self:
         """ Remove the alias """
         self._alias = None
@@ -213,6 +247,12 @@ class Col(ChocExpr):
     def count(self) -> Self:
         """ Apply the "count" function """
         self._agg_function = AggFunction.Count
+        return self
+
+    def count_distinct(self) -> Self:
+        """ Apply COUNT(DISTINCT col) """
+        self._agg_function = AggFunction.Count
+        self._distinct_agg = True
         return self
 
     def max(self) -> Self:

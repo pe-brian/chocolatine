@@ -184,3 +184,53 @@ def test_col_aggregate():
     assert _("amount").aggregate(AggFunction.Sum).build() == "SUM(amount)"
     assert _("amount").aggregate(AggFunction.Average).build() == "AVG(amount)"
 
+
+def test_col_count_distinct():
+    assert _("customer_id").count_distinct().build() == "COUNT(DISTINCT customer_id)"
+
+
+def test_col_creation_name_not_null():
+    from chocolatine import SqlType
+    assert _("email", type=SqlType.String, not_null=True).creation_name == "email VARCHAR(255) NOT NULL"
+
+
+def test_col_creation_name_unique():
+    from chocolatine import SqlType
+    assert _("email", type=SqlType.String, unique=True).creation_name == "email VARCHAR(255) UNIQUE"
+
+
+def test_col_creation_name_default_int():
+    from chocolatine import SqlType
+    assert _("score", type=SqlType.Integer, default=0).creation_name == "score INT DEFAULT 0"
+
+
+def test_col_creation_name_default_str():
+    from chocolatine import SqlType
+    assert _("status", type=SqlType.String, default="active").creation_name == "status VARCHAR(255) DEFAULT 'active'"
+
+
+def test_col_creation_name_all_constraints():
+    from chocolatine import SqlType
+    assert _("email", type=SqlType.String, not_null=True, unique=True).creation_name == "email VARCHAR(255) NOT NULL UNIQUE"
+
+
+def test_col_set_not_null_fluent():
+    from chocolatine import SqlType
+    col = _("email", type=SqlType.String).set_not_null()
+    assert col._not_null is True
+    assert col.creation_name == "email VARCHAR(255) NOT NULL"
+
+
+def test_col_set_unique_fluent():
+    from chocolatine import SqlType
+    col = _("email", type=SqlType.String).set_unique()
+    assert col._unique is True
+    assert col.creation_name == "email VARCHAR(255) UNIQUE"
+
+
+def test_col_set_default_fluent():
+    from chocolatine import SqlType
+    col = _("score", type=SqlType.Integer).set_default(0)
+    assert col._default == 0
+    assert col.creation_name == "score INT DEFAULT 0"
+
