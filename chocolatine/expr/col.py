@@ -13,11 +13,11 @@ from choc_expr import Expr as ChocExpr
 
 from .when import When
 from .condition import Condition
-from ..sql_type import SqlType
-from ..operator import Operator
-from ..ordering import Ordering
-from ..agg_function import AggFunction
-from ..sql_function import SqlFunction
+from ..enums.sql_type import SqlType
+from ..enums.operator import Operator
+from ..enums.ordering import Ordering
+from ..enums.agg_function import AggFunction
+from ..enums.sql_function import SqlFunction
 
 
 @typechecked
@@ -31,8 +31,26 @@ class Col(ChocExpr):
             sql_function: SqlFunction | None = None,
             ordering: Ordering | None = None,
             table_name: str | None = None,
-            type: SqlType | None = None
+            type: SqlType | None = None,
+            not_null: bool = False,
+            unique: bool = False,
+            default: int | float | str | bool | None = None
     ) -> None:
+        """
+        Define a SQL column.
+
+        :param name: Column name. Supports shorthand prefixes '>:' (ASC) and '<:' (DESC),
+                     table prefix 'table.col', and alias suffix 'col:alias' or 'col@alias'.
+        :param alias: Optional alias (AS clause).
+        :param agg_function: Aggregate function to wrap the column (COUNT, SUM, AVG, MIN, MAX).
+        :param sql_function: Scalar SQL function to apply (UPPER, LOWER, etc.).
+        :param ordering: Sort direction for ORDER BY.
+        :param table_name: Table prefix for the column reference.
+        :param type: SQL type, used in CREATE TABLE / ALTER TABLE contexts.
+        :param not_null: If True, add NOT NULL constraint (CREATE TABLE only).
+        :param unique: If True, add UNIQUE constraint (CREATE TABLE only).
+        :param default: Default value for the column (CREATE TABLE only).
+        """
         if not name:
             raise ValueError("The name parameter must not be empty")
         if name.startswith("<:"):
@@ -59,12 +77,17 @@ class Col(ChocExpr):
 
         self._agg_function = agg_function
         self._sql_function = sql_function
+        self._sql_function_args: tuple = ()
         self._ordering = ordering
         self._concatenation = []
         self._alias = alias
         self._table_name = table_name
         self._name = name
         self._type = type
+        self._not_null = not_null
+        self._unique = unique
+        self._default = default
+        self._distinct_agg = False
 
         super().__init__("{full_name}@{_alias}: AS {_alias}:;")
 
@@ -75,18 +98,29 @@ class Col(ChocExpr):
         else:
             name = f"{self._table_name + "." if self._table_name else ""}{self._name}"
         if self._agg_function:
-            return f"{self._agg_function.value}({f"{name}"})"
+            inner = f"DISTINCT {name}" if self._distinct_agg else name
+            return f"{self._agg_function.value}({inner})"
         if self._sql_function:
-            return f"{self._sql_function.value}({f"{name}"})"
+            from ..utils import quote_expr
+            extra = "".join(f", {quote_expr(a)}" for a in self._sql_function_args)
+            return f"{self._sql_function.value}({name}{extra})"
         return f"{name}"
     
     @property
     def creation_name(self):
-        return f"{self._name} {self._type.value}"
+        from ..utils import quote_expr
+        parts = [self._name, self._type.value]
+        if self._not_null:
+            parts.append("NOT NULL")
+        if self._unique:
+            parts.append("UNIQUE")
+        if self._default is not None:
+            parts.append(f"DEFAULT {quote_expr(self._default)}")
+        return " ".join(parts)
 
     def copy(self) -> Self:
         """ Copy the column """
-        return Col(
+        col = Col(
             name=self._name,
             alias=self._alias,
             agg_function=self._agg_function,
@@ -94,6 +128,8 @@ class Col(ChocExpr):
             ordering=self._ordering,
             table_name=self._table_name
         )
+        col._sql_function_args = self._sql_function_args
+        return col
 
     def __gt__(self, value: Col | int | float | When) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
@@ -150,14 +186,82 @@ class Col(ChocExpr):
         """ Apply the "in" operator """
         return Condition(self, Operator.In, expr)
 
+    def is_null(self) -> Condition:
+        """ Check if the column is NULL """
+        return Condition(self, Operator.IsNull)
+
+    def is_not_null(self) -> Condition:
+        """ Check if the column is not NULL """
+        return Condition(self, Operator.IsNotNull)
+
+    def between(self, low: int | float | str, high: int | float | str) -> Condition:
+        """ Check if the column value is between low and high (inclusive) """
+        return Condition(self, Operator.Between, low, between_high=high)
+
     def upper(self) -> Self:
-        """ Apply the "upper" operator """
+        """ Apply the UPPER function """
         self._sql_function = SqlFunction.Upper
         return self
 
     def lower(self) -> Self:
-        """ Apply the "lower" operator """
+        """ Apply the LOWER function """
         self._sql_function = SqlFunction.Lower
+        return self
+
+    def trim(self) -> Self:
+        """ Apply the TRIM function """
+        self._sql_function = SqlFunction.Trim
+        return self
+
+    def ltrim(self) -> Self:
+        """ Apply the LTRIM function """
+        self._sql_function = SqlFunction.LTrim
+        return self
+
+    def rtrim(self) -> Self:
+        """ Apply the RTRIM function """
+        self._sql_function = SqlFunction.RTrim
+        return self
+
+    def length(self) -> Self:
+        """ Apply the LENGTH function """
+        self._sql_function = SqlFunction.Length
+        return self
+
+    def reverse(self) -> Self:
+        """ Apply the REVERSE function """
+        self._sql_function = SqlFunction.Reverse
+        return self
+
+    def abs(self) -> Self:
+        """ Apply the ABS function """
+        self._sql_function = SqlFunction.Abs
+        return self
+
+    def round(self, decimals: int | None = None) -> Self:
+        """ Apply the ROUND function, optionally to a given number of decimal places """
+        self._sql_function = SqlFunction.Round
+        self._sql_function_args = (decimals,) if decimals is not None else ()
+        return self
+
+    def floor(self) -> Self:
+        """ Apply the FLOOR function """
+        self._sql_function = SqlFunction.Floor
+        return self
+
+    def ceiling(self) -> Self:
+        """ Apply the CEILING function """
+        self._sql_function = SqlFunction.Ceiling
+        return self
+
+    def date(self) -> Self:
+        """ Apply the DATE function (extract date part from datetime) """
+        self._sql_function = SqlFunction.Date
+        return self
+
+    def md5(self) -> Self:
+        """ Apply the MD5 function """
+        self._sql_function = SqlFunction.MD5
         return self
 
     def alias(self, name: str) -> Self:
@@ -169,6 +273,21 @@ class Col(ChocExpr):
             name = name[2:]
             self._ordering = Ordering.Ascending
         self._alias = name
+        return self
+
+    def set_not_null(self, value: bool = True) -> Self:
+        """ Set NOT NULL constraint """
+        self._not_null = value
+        return self
+
+    def set_unique(self, value: bool = True) -> Self:
+        """ Set UNIQUE constraint """
+        self._unique = value
+        return self
+
+    def set_default(self, value: int | float | str | bool | None) -> Self:
+        """ Set DEFAULT value """
+        self._default = value
         return self
 
     def remove_alias(self) -> Self:
@@ -189,6 +308,54 @@ class Col(ChocExpr):
     def count(self) -> Self:
         """ Apply the "count" function """
         self._agg_function = AggFunction.Count
+        return self
+
+    def left(self, n: int) -> Self:
+        """ Apply the LEFT function — return the leftmost n characters """
+        self._sql_function = SqlFunction.Left
+        self._sql_function_args = (n,)
+        return self
+
+    def right(self, n: int) -> Self:
+        """ Apply the RIGHT function — return the rightmost n characters """
+        self._sql_function = SqlFunction.Right
+        self._sql_function_args = (n,)
+        return self
+
+    def replace(self, search: str, replacement: str) -> Self:
+        """ Apply the REPLACE function — replace all occurrences of search with replacement """
+        self._sql_function = SqlFunction.Replace
+        self._sql_function_args = (search, replacement)
+        return self
+
+    def substring(self, start: int, length: int | None = None) -> Self:
+        """ Apply the SUBSTRING function — extract a substring starting at start (1-based) """
+        self._sql_function = SqlFunction.Substring
+        self._sql_function_args = (start,) if length is None else (start, length)
+        return self
+
+    def lpad(self, length: int, pad: str) -> Self:
+        """ Apply the LPAD function — left-pad the value to the given length using pad """
+        self._sql_function = SqlFunction.LPad
+        self._sql_function_args = (length, pad)
+        return self
+
+    def rpad(self, length: int, pad: str) -> Self:
+        """ Apply the RPAD function — right-pad the value to the given length using pad """
+        self._sql_function = SqlFunction.RPad
+        self._sql_function_args = (length, pad)
+        return self
+
+    def date_format(self, fmt: str) -> Self:
+        """ Apply the DATE_FORMAT function — format a date/datetime using a format string """
+        self._sql_function = SqlFunction.DateFormat
+        self._sql_function_args = (fmt,)
+        return self
+
+    def count_distinct(self) -> Self:
+        """ Apply COUNT(DISTINCT col) """
+        self._agg_function = AggFunction.Count
+        self._distinct_agg = True
         return self
 
     def max(self) -> Self:

@@ -11,7 +11,7 @@ class Select(ChocExpr):
     """ Select expression """
     def __init__(
             self,
-            cols: Iterable[Col | str] | None = None,
+            cols: Iterable[Col | ChocExpr | str] | None = None,
             unique: bool = False,
             compact: bool = True
     ) -> None:
@@ -36,5 +36,5 @@ class Select(ChocExpr):
         return self._cols
 
     @cols.setter
-    def cols(self, value):
+    def cols(self, value: Iterable[Col | ChocExpr | str] | None):
         self._cols = [Col(col) if type(col) is str else col for col in (value or [])]

@@ -28,3 +28,15 @@ END\
 
 def test_conditional_when_without_else_compact():
     assert str(When((_("a") == 1, _("a") == 2, _("a") == 3), ("un", "deux", "trois"), compact=True)) == "CASE WHEN (a = 1) THEN 'un' WHEN (a = 2) THEN 'deux' WHEN (a = 3) THEN 'trois' END"
+
+
+def test_when_mismatched_lengths_raises():
+    import pytest
+    with pytest.raises(ValueError):
+        When((_("a") == 1, _("a") == 2), ("un",))
+
+
+def test_when_empty_raises():
+    import pytest
+    with pytest.raises(ValueError):
+        When((), ())

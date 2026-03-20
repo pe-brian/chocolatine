@@ -1,9 +1,9 @@
 from typeguard import typechecked
 
-from .agg_function import AggFunction
-from .sql_function import SqlFunction
+from .enums.agg_function import AggFunction
+from .enums.sql_function import SqlFunction
 from .expr.col import Col
-from .ordering import Ordering
+from .enums.ordering import Ordering
 
 
 @typechecked
@@ -87,3 +87,69 @@ def asc(col_name: str) -> Col:
 def desc(col_name: str) -> Col:
     """ Shortcut to create a column and apply the descending ordering  """
     return Col(name=col_name, ordering=Ordering.Descending)
+
+
+@typechecked
+def trim(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the TRIM function """
+    return Col(name=col_name, sql_function=SqlFunction.Trim)
+
+
+@typechecked
+def ltrim(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the LTRIM function """
+    return Col(name=col_name, sql_function=SqlFunction.LTrim)
+
+
+@typechecked
+def rtrim(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the RTRIM function """
+    return Col(name=col_name, sql_function=SqlFunction.RTrim)
+
+
+@typechecked
+def length(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the LENGTH function """
+    return Col(name=col_name, sql_function=SqlFunction.Length)
+
+
+@typechecked
+def reverse(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the REVERSE function """
+    return Col(name=col_name, sql_function=SqlFunction.Reverse)
+
+
+@typechecked
+def abs(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the ABS function """
+    return Col(name=col_name, sql_function=SqlFunction.Abs)
+
+
+@typechecked
+def round(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the ROUND function """
+    return Col(name=col_name, sql_function=SqlFunction.Round)
+
+
+@typechecked
+def floor(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the FLOOR function """
+    return Col(name=col_name, sql_function=SqlFunction.Floor)
+
+
+@typechecked
+def ceiling(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the CEILING function """
+    return Col(name=col_name, sql_function=SqlFunction.Ceiling)
+
+
+@typechecked
+def date(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the DATE function """
+    return Col(name=col_name, sql_function=SqlFunction.Date)
+
+
+@typechecked
+def md5(col_name: str) -> Col:
+    """ Shortcut to create a column and apply the MD5 function """
+    return Col(name=col_name, sql_function=SqlFunction.MD5)

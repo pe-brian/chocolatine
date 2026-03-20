@@ -15,6 +15,13 @@ class Table(ChocExpr):
             alias: str | None = None,
             schema: str | None = None
     ) -> None:
+        """
+        Define a SQL table reference.
+
+        :param name: Table name. Supports schema prefix 'schema.table' and alias suffix 'table:alias'.
+        :param alias: Optional alias (AS clause).
+        :param schema: Optional schema/database prefix.
+        """
         if not name:
             raise ValueError("The name parameter must not be empty")
         match = re.search(r"^([A-Za-z_\s]+\.)?([A-Za-z_\s()]+){1}((?:@|:)[A-Za-z_\s]*)?$", name)

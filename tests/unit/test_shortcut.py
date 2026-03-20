@@ -14,6 +14,17 @@ from chocolatine import (
     day,
     month,
     year,
+    trim,
+    ltrim,
+    rtrim,
+    length,
+    reverse,
+    abs,
+    round,
+    floor,
+    ceiling,
+    date,
+    md5,
     Col as _
 )
 
@@ -73,3 +84,47 @@ def test_asc():
 
 def test_desc():
     assert desc("A").ordering_label == "A DESC"
+
+
+def test_trim():
+    assert str(trim("A")) == "TRIM(A)"
+
+
+def test_ltrim():
+    assert str(ltrim("A")) == "LTRIM(A)"
+
+
+def test_rtrim():
+    assert str(rtrim("A")) == "RTRIM(A)"
+
+
+def test_length():
+    assert str(length("A")) == "LENGTH(A)"
+
+
+def test_reverse():
+    assert str(reverse("A")) == "REVERSE(A)"
+
+
+def test_abs():
+    assert str(abs("A")) == "ABS(A)"
+
+
+def test_round():
+    assert str(round("A")) == "ROUND(A)"
+
+
+def test_floor():
+    assert str(floor("A")) == "FLOOR(A)"
+
+
+def test_ceiling():
+    assert str(ceiling("A")) == "CEILING(A)"
+
+
+def test_date():
+    assert str(date("A")) == "DATE(A)"
+
+
+def test_md5():
+    assert str(md5("A")) == "MD5(A)"

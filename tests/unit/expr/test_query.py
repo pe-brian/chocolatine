@@ -129,3 +129,72 @@ def test_query_get_row_from_table():
         table="people",
         filters=(_("age") > 18,)
     ).build() == "SELECT * FROM people WHERE (age > 18) LIMIT 1"
+
+
+def test_query_delete_rows_no_filter():
+    assert Query(query_mode=QueryMode.Delete, table="people").build() == "DELETE FROM people"
+
+
+def test_query_delete_rows_multiple_filters():
+    assert Query.delete_rows(
+        table="people",
+        filter=(_("age") > 18) & (_("city") == "Paris")
+    ).build() == "DELETE FROM people WHERE ((age > 18) AND (city = 'Paris'))"
+
+
+def test_query_get_rows_with_left_join():
+    from chocolatine import JoinType
+    assert Query.get_rows(
+        table="people",
+        joins=[("city", _("people.city_id") == _("city.id"), JoinType.Left)],
+        cols=(_("first_name"), _("city.name"))
+    ).build() == "SELECT first_name, city.name FROM people LEFT JOIN city ON (people.city_id = city.id)"
+
+
+def test_query_get_rows_no_filter():
+    assert Query.get_rows(table="people").build() == "SELECT * FROM people"
+
+
+def test_query_read_mode():
+    assert Query(query_mode=QueryMode.Select).read_mode is True
+    assert Query(query_mode=QueryMode.Delete).read_mode is False
+
+
+def test_query_update_mode():
+    assert Query(query_mode=QueryMode.Update).update_mode is True
+    assert Query(query_mode=QueryMode.Select).update_mode is False
+
+
+def test_query_delete_mode():
+    assert Query(query_mode=QueryMode.Delete).delete_mode is True
+    assert Query(query_mode=QueryMode.Select).delete_mode is False
+
+
+def test_query_fluent_table():
+    q = Query(query_mode=QueryMode.Select)
+    q.table("people")
+    assert q.build() == "SELECT * FROM people"
+
+
+def test_query_fluent_distinct():
+    assert Query(query_mode=QueryMode.Select, table="people").distinct().build() == "SELECT DISTINCT(*) FROM people"
+
+
+def test_query_fluent_head():
+    q = Query(query_mode=QueryMode.Select, table="people")
+    q.head(5)
+    assert q.build() == "SELECT * FROM people LIMIT 5"
+
+
+def test_query_rand():
+    q1 = Query.get_rows(table="a")
+    q2 = Query.get_rows(table="b")
+    assert q2.__rand__(q1).build() == q2.union(q1).build()
+
+
+def test_query_drop_table():
+    assert Query.drop_table(table="people").build() == "DROP TABLE people"
+
+
+def test_query_truncate():
+    assert Query.truncate(table="people").build() == "TRUNCATE TABLE people"

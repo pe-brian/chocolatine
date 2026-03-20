@@ -9,3 +9,5 @@ class QueryMode(Enum):
     Create = "CREATE"
     Alter = "ALTER"
     Insert = "INSERT"
+    Drop = "DROP"
+    Truncate = "TRUNCATE"

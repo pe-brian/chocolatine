@@ -25,3 +25,15 @@ def test_table_set_alias():
 
 def test_table_full_name():
     assert Table(name="schema.name@alias").full_name == "schema.name"
+
+
+def test_table_invalid_name_empty():
+    import pytest
+    with pytest.raises(ValueError):
+        Table(name="")
+
+
+def test_table_invalid_name_chars():
+    import pytest
+    with pytest.raises(ValueError):
+        Table(name="users; DROP TABLE users--")

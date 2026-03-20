@@ -20,3 +20,8 @@ from .delete import Delete  # noqa
 from .delete_from import DeleteFrom  # noqa
 from .union import Union  # noqa
 from .view import View  # noqa
+from .coalesce import Coalesce  # noqa
+from .exists import Exists  # noqa
+from .with_cte import With  # noqa
+from .window import Window  # noqa
+from .on_duplicate_key_update import OnDuplicateKeyUpdate  # noqa

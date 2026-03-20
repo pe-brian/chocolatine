@@ -28,3 +28,15 @@ END\
 
 def test_when_with_else_compact():
     assert str(ColWhen(_("a"), (1, 2, 3), ("un", "deux", "trois"), "autre", compact=True)) == "CASE a WHEN 1 THEN 'un' WHEN 2 THEN 'deux' WHEN 3 THEN 'trois' ELSE 'autre' END"
+
+
+def test_col_when_mismatched_lengths_raises():
+    import pytest
+    with pytest.raises(ValueError):
+        ColWhen(_("a"), (1, 2), ("un",))
+
+
+def test_col_when_empty_raises():
+    import pytest
+    with pytest.raises(ValueError):
+        ColWhen(_("a"), (), ())

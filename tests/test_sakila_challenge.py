@@ -1,5 +1,4 @@
-from chocolatine import Query, Col as _, month, year, sum, count, QueryMode, When, View, ViewMode
-from chocolatine.sql_type import SqlType
+from chocolatine import Query, Col as _, month, year, sum, count, QueryMode, When, View, ViewMode, SqlType
 
 
 def test_query_1a():

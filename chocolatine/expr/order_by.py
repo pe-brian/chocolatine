@@ -20,7 +20,7 @@ class OrderBy(ChocExpr):
 
     @property
     def cols(self) -> Iterable[Col]:
-        return [col for col in self._select.cols if col.ordering_label]
+        return [col for col in self._select.cols if isinstance(col, Col) and col.ordering_label]
 
     @property
     def buildable(self) -> bool:
