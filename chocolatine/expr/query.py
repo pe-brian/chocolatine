@@ -23,6 +23,8 @@ from .subquery import Subquery
 from .update_set import UpdateSet
 from .union import Union
 from .on_duplicate_key_update import OnDuplicateKeyUpdate
+from .insert_row import InsertRow
+from ..utils import _params
 
 
 @typechecked
@@ -39,7 +41,7 @@ class Query(ChocExpr):
             unique: bool = False,
             joins: Iterable[Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None] | Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None, JoinType | None]] | None = None,
             cols: Iterable[str | Col | ChocExpr] | None = None,
-            groups: Iterable[str] | None = None,
+            groups: Iterable[str | Col] | None = None,
             filters: Iterable[Condition | ChocExpr] | None = None,
             assignations: Iterable[Condition] | None = None,
             values: Iterable[Iterable[Any]] | None = None,
@@ -47,7 +49,10 @@ class Query(ChocExpr):
             alter_mode: AlterMode | None = None,
             alter_col: Col | str | None = None,
             alter_new_col: Col | str | None = None,
-            alter_col_after: Col | str | None = None
+            alter_col_after: Col | str | None = None,
+            insert_select: ChocExpr | None = None,
+            index_name: str | None = None,
+            unique_index: bool = False
     ) -> None:
         """
         Build a SQL query.
@@ -89,7 +94,7 @@ class Query(ChocExpr):
                 self._cols = cols
                 if values is None:
                     values = []
-                self._values = values
+                self._values = [InsertRow(row) for row in values]
                 self._on_duplicate = OnDuplicateKeyUpdate(compact=compact)
                 super().__init__(
                     "INSERT INTO {_table} ({$(_cols)})~VALUES {$(_values)}~{_on_duplicate}",
@@ -134,8 +139,9 @@ class Query(ChocExpr):
                 self._where = Where(compact=False)
                 for filter in filters:
                     self.filter(filter)
+                self._limit = Limit(length=None, compact=False)
                 super().__init__(
-                    "{_delete_from~}{_where~}",
+                    "{_delete_from~}{_where~}{_limit~}",
                     list_join_sep="\n",
                     compact=compact
                 )
@@ -146,8 +152,9 @@ class Query(ChocExpr):
                     filters = []
                 for filter in filters:
                     self.filter(filter)
+                self._limit = Limit(length=None, compact=False)
                 super().__init__(
-                    "{_update_set~}{_where~}",
+                    "{_update_set~}{_where~}{_limit~}",
                     list_join_sep="\n",
                     compact=compact
                 )
@@ -183,6 +190,26 @@ class Query(ChocExpr):
                 super().__init__("DROP TABLE {_table}", compact=compact)
             case QueryMode.Truncate:
                 super().__init__("TRUNCATE TABLE {_table}", compact=compact)
+            case QueryMode.InsertSelect:
+                if cols is None:
+                    cols = []
+                self._cols = cols
+                self._has_cols = len(list(cols)) > 0
+                self._insert_select = insert_select
+                super().__init__(
+                    "INSERT INTO {_table}@{_has_cols}: ({$(_cols)}):;~{_insert_select}",
+                    compact=compact
+                )
+            case QueryMode.CreateIndex:
+                self._index_name = index_name
+                self._unique_index = unique_index
+                if cols is None:
+                    cols = []
+                self._cols = cols
+                super().__init__(
+                    "CREATE @{_unique_index}:UNIQUE :;INDEX {_index_name} ON {_table} ({$(_cols)})",
+                    compact=compact
+                )
 
     @staticmethod
     def alter_table(
@@ -281,20 +308,20 @@ class Query(ChocExpr):
         unique: bool = False,
         joins: Iterable[Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None] | Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None, JoinType | None]] | None = None,
         cols: Iterable[str | Col | ChocExpr] | None = None,
-        groups: Iterable[str] | None = None,
+        groups: Iterable[str | Col] | None = None,
         filters: Iterable[Condition | ChocExpr] | None = None,
         compact: bool = True
     ):
         """ Select rows, with optional filters, joins, grouping, limit, and offset """
         return Query(query_mode=QueryMode.Select, table=table, limit=limit, offset=offset, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
-    
+
     @staticmethod
     def update_rows(table: str | Table, filters: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
         """ Update rows matching the given conditions """
         return Query(query_mode=QueryMode.Update, table=table, filters=filters, assignations=assignations, compact=compact)
-    
+
     @staticmethod
-    def create_table(table: str | Table, cols: Iterable[Col], auto_id: bool = False, compact: bool = True):
+    def create_table(table: str | Table, cols: Iterable[Col | ChocExpr], auto_id: bool = False, compact: bool = True):
         """ Build a CREATE TABLE query """
         return Query(query_mode=QueryMode.Create, table=table, cols=cols, auto_id=auto_id, compact=compact)
 
@@ -307,6 +334,27 @@ class Query(ChocExpr):
     def truncate(table: str | Table, compact: bool = True):
         """ Build a TRUNCATE TABLE query """
         return Query(query_mode=QueryMode.Truncate, table=table, compact=compact)
+
+    @staticmethod
+    def insert_select(
+        table: str | Table,
+        query: ChocExpr,
+        cols: Iterable[str | Col] | None = None,
+        compact: bool = True
+    ):
+        """ Build an INSERT INTO ... SELECT ... query """
+        return Query(query_mode=QueryMode.InsertSelect, table=table, cols=cols or [], insert_select=query, compact=compact)
+
+    @staticmethod
+    def create_index(
+        name: str,
+        table: str | Table,
+        cols: Iterable[str | Col],
+        unique: bool = False,
+        compact: bool = True
+    ):
+        """ Build a CREATE [UNIQUE] INDEX query """
+        return Query(query_mode=QueryMode.CreateIndex, index_name=name, table=table, cols=cols, unique_index=unique, compact=compact)
 
     def on_duplicate_key_update(self, *assignations: Condition) -> Self:
         """ Add an ON DUPLICATE KEY UPDATE clause to an INSERT query """
@@ -382,10 +430,25 @@ class Query(ChocExpr):
             target.condition = condition
         return self
 
-    def group_by(self, *cols_names: str) -> Self:
+    def group_by(self, *cols: str | Col) -> Self:
         """ Group the rows of the specified columns """
-        self._group_by.cols = cols_names
+        self._group_by.cols = cols
         return self
+
+    def order_by(self, *cols: str | Col) -> Self:
+        """ Explicitly set ORDER BY columns (overrides inline col ordering) """
+        self._order_by.set_explicit(*cols)
+        return self
+
+    def build_parameterized(self) -> tuple:
+        """ Build the query with %s placeholders. Returns (sql, params) tuple. """
+        collector = []
+        token = _params.set(collector)
+        try:
+            sql = self.build()
+        finally:
+            _params.reset(token)
+        return sql, tuple(collector)
 
     def join(self, table: str | Table | Subquery, condition: Condition | str | Iterable[str] | None = None, join_type: JoinType | None = JoinType.Inner) -> Self:
         """ Join two tables together """

@@ -33,3 +33,4 @@ from .ifnull import IfNull  # noqa
 from .sql_if import SqlIf  # noqa
 from .subquery import Subquery  # noqa
 from .any_all import AnySubquery, AllSubquery  # noqa
+from .foreign_key import ForeignKey  # noqa

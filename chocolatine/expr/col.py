@@ -35,7 +35,8 @@ class Col(ChocExpr):
             type: SqlType | None = None,
             not_null: bool = False,
             unique: bool = False,
-            default: int | float | str | bool | None = None
+            default: int | float | str | bool | None = None,
+            check: str | None = None
     ) -> None:
         """
         Define a SQL column.
@@ -88,6 +89,7 @@ class Col(ChocExpr):
         self._not_null = not_null
         self._unique = unique
         self._default = default
+        self._check = check
         self._distinct_agg = False
 
         super().__init__("{full_name}@{_alias}: AS {_alias}:;")
@@ -117,6 +119,8 @@ class Col(ChocExpr):
             parts.append("UNIQUE")
         if self._default is not None:
             parts.append(f"DEFAULT {quote_expr(self._default)}")
+        if self._check is not None:
+            parts.append(f"CHECK ({self._check})")
         return " ".join(parts)
 
     def copy(self) -> Self:
