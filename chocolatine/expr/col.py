@@ -131,6 +131,42 @@ class Col(ChocExpr):
         col._sql_function_args = self._sql_function_args
         return col
 
+    def __add__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(self, "+", other)
+
+    def __radd__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(other, "+", self)
+
+    def __sub__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(self, "-", other)
+
+    def __rsub__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(other, "-", self)
+
+    def __mul__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(self, "*", other)
+
+    def __rmul__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(other, "*", self)
+
+    def __truediv__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(self, "/", other)
+
+    def __rtruediv__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(other, "/", self)
+
+    def __mod__(self, other: Col | int | float | str):
+        from .arith_expr import ArithExpr
+        return ArithExpr(self, "%", other)
+
     def __gt__(self, value: Col | int | float | When) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
     

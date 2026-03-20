@@ -1,4 +1,4 @@
-from chocolatine import Query, QueryMode, Col as _, SqlType
+from chocolatine import Query, QueryMode, Col, Col as _, SqlType
 
 
 def test_query_create_table():
@@ -190,6 +190,33 @@ def test_query_rand():
     q1 = Query.get_rows(table="a")
     q2 = Query.get_rows(table="b")
     assert q2.__rand__(q1).build() == q2.union(q1).build()
+
+
+def test_query_filter_multiple_calls_combined_with_and():
+    q = Query.get_rows(table="people")
+    q.filter(Col("age") > 18)
+    q.filter(Col("city") == "Paris")
+    q.filter(Col("active") == 1)
+    assert q.build() == "SELECT * FROM people WHERE (((age > 18) AND (city = 'Paris')) AND (active = 1))"
+
+
+def test_query_filter_multiple_in_constructor_combined():
+    q = Query.get_rows(table="people", filters=[Col("age") > 18, Col("city") == "Paris"])
+    assert q.build() == "SELECT * FROM people WHERE ((age > 18) AND (city = 'Paris'))"
+
+
+def test_query_compact_property_true_to_false():
+    q = Query.get_rows(table="people", compact=True, filters=[Col("age") > 18])
+    assert "\n" not in q.build()
+    q.compact = False
+    assert "\n" in q.build()
+
+
+def test_query_compact_property_false_to_true():
+    q = Query.get_rows(table="people", compact=False, filters=[Col("age") > 18])
+    assert "\n" in q.build()
+    q.compact = True
+    assert "\n" not in q.build()
 
 
 def test_query_drop_table():

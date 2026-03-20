@@ -15,7 +15,7 @@ class Coalesce(ChocExpr):
 
     def __init__(
             self,
-            *args: Col | str | int | float | None,
+            *args: ChocExpr | str | int | float | None,
             alias: str | None = None
     ) -> None:
         """
@@ -27,7 +27,7 @@ class Coalesce(ChocExpr):
         if len(args) < 2:
             raise ValueError("COALESCE requires at least 2 arguments")
         self._alias = alias
-        self._args = [a.full_name if isinstance(a, Col) else ("NULL" if a is None else str(quote_expr(a))) for a in args]
+        self._args = [a.full_name if hasattr(a, "full_name") else ("NULL" if a is None else str(quote_expr(a))) for a in args]
         super().__init__("COALESCE({$(_args)})@{_alias}: AS {_alias}:;")
 
     def alias(self, name: str) -> Self:

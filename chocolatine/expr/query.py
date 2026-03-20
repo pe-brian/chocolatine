@@ -15,6 +15,7 @@ from .select_from import SelectFrom
 from .limit import Limit
 from ..enums.agg_function import AggFunction
 from ..enums.join_type import JoinType
+from ..enums.operator import Operator
 from .condition import Condition
 from .col import Col
 from .table import Table
@@ -311,9 +312,20 @@ class Query(ChocExpr):
         self._on_duplicate.assignations = assignations
         return self
 
-    def compact(self):
-        """ Render the query on a single line """
-        self._compact = True
+    @property
+    def compact(self) -> bool:
+        return self._compact
+
+    @compact.setter
+    def compact(self, value: bool) -> None:
+        self._compact = value
+        for obj in vars(self).values():
+            if isinstance(obj, list):
+                for item in obj:
+                    if hasattr(item, "_compact"):
+                        item._compact = value
+            elif hasattr(obj, "_compact"):
+                obj._compact = value
 
     @property
     def read_mode(self) -> bool:
@@ -358,11 +370,15 @@ class Query(ChocExpr):
         return self
 
     def filter(self, condition: Condition | ChocExpr) -> Self:
-        """ Filter the rows according to the given condition """
+        """ Filter the rows according to the given condition, combining with AND if a condition already exists """
         if any(x in condition.build() for x in set(e.value for e in AggFunction)):
-            self._having.condition = condition
+            target = self._having
         else:
-            self._where.condition = condition
+            target = self._where
+        if target.condition is not None:
+            target.condition = Condition(target.condition, Operator.And, condition)
+        else:
+            target.condition = condition
         return self
 
     def group_by(self, *cols_names: str) -> Self:

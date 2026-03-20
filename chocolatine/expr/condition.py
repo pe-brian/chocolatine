@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Self, TYPE_CHECKING
+from typing import Iterable, Self, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .col import Col
@@ -17,11 +17,11 @@ class Condition(ChocExpr):
     """ SQL condition """
     def __init__(
             self,
-            left_value: int | float | str | Col | Self,
+            left_value: int | float | str | ChocExpr | Self,
             op: Operator,
-            right_value: int | float | str | Col | When | Self | None = None,
+            right_value: int | float | str | ChocExpr | Self | Iterable[int | float | str] | None = None,
             negate: bool = False,
-            between_high: int | float | str | Col | None = None
+            between_high: int | float | str | ChocExpr | None = None
     ) -> None:
         """
         Define a SQL condition (e.g. col > 5, col LIKE '%foo%').
