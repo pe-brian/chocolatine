@@ -26,3 +26,4 @@ from .with_cte import With  # noqa
 from .window import Window  # noqa
 from .on_duplicate_key_update import OnDuplicateKeyUpdate  # noqa
 from .arith_expr import ArithExpr  # noqa
+from .raw_expr import RawExpr  # noqa

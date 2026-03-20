@@ -167,22 +167,22 @@ class Col(ChocExpr):
         from .arith_expr import ArithExpr
         return ArithExpr(self, "%", other)
 
-    def __gt__(self, value: Col | int | float | When) -> Condition:
+    def __gt__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
-    
-    def __ge__(self, value: Col | int | float | When) -> Condition:
+
+    def __ge__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterOrEqualThan, right_value=value)
-    
-    def __lt__(self, value: Col | int | float | When) -> Condition:
+
+    def __lt__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.LowerThan, right_value=value)
-    
-    def __le__(self, value: Col | int | float | When) -> Condition:
+
+    def __le__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.LowerOrEqualThan, right_value=value)
 
-    def __eq__(self, value: Col | int | float | str | When) -> Condition:
+    def __eq__(self, value: Col | int | float | str | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.Equal, right_value=value)
 
-    def __ne__(self, value: Col | int | float | str | When) -> Condition:
+    def __ne__(self, value: Col | int | float | str | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.NotEqual, right_value=value)
 
     def __and__(self, value: Col | str) -> Self:
@@ -193,7 +193,11 @@ class Col(ChocExpr):
         return self
 
     def __rand__(self, value: Col | str) -> Self:
-        return self.__and__(value)
+        if not self._concatenation:
+            self._concatenation.append(self.copy())
+        self._sql_function = None
+        self._concatenation.insert(0, value)
+        return self
 
     def __rshift__(self, value: str) -> Condition:
         return self.like(value)
