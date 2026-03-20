@@ -225,3 +225,12 @@ def test_query_drop_table():
 
 def test_query_truncate():
     assert Query.truncate(table="people").build() == "TRUNCATE TABLE people"
+
+
+def test_query_filter_routing_col_name_with_agg_word():
+    # Column named "customer_summary" contains "SUM" — must go to WHERE, not HAVING
+    q = Query.get_rows(table="sales")
+    q.filter(Col("customer_summary") == "foo")
+    built = q.build()
+    assert "WHERE" in built
+    assert "HAVING" not in built

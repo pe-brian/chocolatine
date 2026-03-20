@@ -11,3 +11,5 @@ class QueryMode(Enum):
     Insert = "INSERT"
     Drop = "DROP"
     Truncate = "TRUNCATE"
+    InsertSelect = "INSERT_SELECT"
+    CreateIndex = "CREATE_INDEX"

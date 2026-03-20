@@ -1,7 +1,14 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from typeguard import typechecked
 from choc_expr import Expr as ChocExpr
 
 from .table import Table
+
+if TYPE_CHECKING:
+    from .subquery import Subquery
 
 
 @typechecked
@@ -9,7 +16,7 @@ class FromExpr(ChocExpr):
     """ From expression """
     def __init__(
             self,
-            table: Table | str | None = None,
+            table: Table | ChocExpr | str | None = None,
             compact: bool = True
     ) -> None:
         self.table = table

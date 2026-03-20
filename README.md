@@ -58,7 +58,7 @@ Most SQL builders are either too verbose (SQLAlchemy Core), too tied to an ORM (
 |---|:---:|:---:|:---:|
 | Type-safe at runtime | Yes | No | Partial |
 | IDE autocompletion | Yes | No | Yes |
-| No dependencies except Python | Near-zero | Yes | No |
+| Near-zero dependencies | Yes | Yes | No |
 | Window functions | Yes | Yes | Yes |
 | CTEs | Yes | Yes | Yes |
 | Learning curve | Low | None | High |
@@ -157,6 +157,8 @@ Query.get_rows("orders", filters=[_("qty") * _("unit_price") > 500])
 ### Joins
 
 ```python
+from chocolatine import JoinType
+
 Query.get_rows(
     "orders o",
     cols=[_("o.id"), _("c.name"), _("c.email")],
@@ -165,6 +167,10 @@ Query.get_rows(
         ("order_items oi", _("oi.order_id") == _("o.id"), JoinType.Left),
     ]
 )
+
+# CROSS JOIN and NATURAL JOIN (no condition needed)
+q.join("log", join_type=JoinType.Cross)
+q.join("categories", join_type=JoinType.Natural)
 ```
 
 ### Aggregations
@@ -195,23 +201,41 @@ _("name").lower()                       # LOWER(name)
 _("name").trim()                        # TRIM(name)
 _("name").length()                      # LENGTH(name)
 _("name").replace("foo", "bar")         # REPLACE(name, 'foo', 'bar')
-_("bio").substring(1, 255)             # SUBSTRING(bio, 1, 255)
-_("code").lpad(10, "0")                # LPAD(code, 10, '0')
-_("name").left(3)                      # LEFT(name, 3)
-_("score").round(2)                    # ROUND(score, 2)
-_("created_at").date_format("%Y-%m")   # DATE_FORMAT(created_at, '%Y-%m')
-_("password").md5()                    # MD5(password)
+_("bio").substring(1, 255)              # SUBSTRING(bio, 1, 255)
+_("code").lpad(10, "0")                 # LPAD(code, 10, '0')
+_("name").left(3)                       # LEFT(name, 3)
+_("score").round(2)                     # ROUND(score, 2)
+_("created_at").date_format("%Y-%m")    # DATE_FORMAT(created_at, '%Y-%m')
+_("password").md5()                     # MD5(password)
 
 # Concatenation
-_("first_name") & " " & _("last_name") # CONCAT(first_name, ' ', last_name)
+_("first_name") & " " & _("last_name")  # CONCAT(first_name, ' ', last_name)
 ```
 
-### CASE / WHEN
+### Date functions
 
 ```python
-from chocolatine import When, ColWhen, Col as _
+from chocolatine import now, curdate, IntervalUnit, Col as _
 
-# Condition-based
+_("created_at").date(_("created_at"))           # DATE(created_at)
+_("created_at").datediff(_("updated_at"))       # DATEDIFF(created_at, updated_at)
+_("created_at").date_add(7, IntervalUnit.Day)   # DATE_ADD(created_at, INTERVAL 7 DAY)
+_("created_at").date_sub(1, IntervalUnit.Month) # DATE_SUB(created_at, INTERVAL 1 MONTH)
+
+now()     # NOW()
+curdate() # CURDATE()
+
+# Use in conditions
+_("updated_at") == now()     # (updated_at = NOW())
+_("created_at") > curdate()  # (created_at > CURDATE())
+```
+
+### Conditional expressions
+
+```python
+from chocolatine import When, ColWhen, Coalesce, NullIf, IfNull, SqlIf, Col as _
+
+# CASE WHEN
 When(
     (_("score") >= 90, _("score") >= 70, _("score") >= 50),
     ("A", "B", "C"),
@@ -220,21 +244,37 @@ When(
 )
 # CASE WHEN (score >= 90) THEN 'A' WHEN (score >= 70) THEN 'B' ... ELSE 'F' END
 
-# Value-based
+# CASE col WHEN value
 ColWhen("status", ("active", "pending"), ("Active", "Pending"), else_returned_val="Other")
 # CASE status WHEN 'active' THEN 'Active' WHEN 'pending' THEN 'Pending' ELSE 'Other' END
-```
 
-### COALESCE
-
-```python
-from chocolatine import Coalesce, Col as _
-
+# COALESCE
 Coalesce(_("phone"), _("mobile"), "N/A").alias("contact")
 # COALESCE(phone, mobile, 'N/A') AS contact
 
-Coalesce(_("discount") * _("price"), 0).alias("rebate")
-# COALESCE((discount * price), 0) AS rebate
+# NULLIF — returns NULL if both args are equal
+NullIf(_("score"), 0).alias("score")
+# NULLIF(score, 0) AS score
+
+# IFNULL — returns fallback if first arg is NULL
+IfNull(_("phone"), "N/A").alias("contact")
+# IFNULL(phone, 'N/A') AS contact
+
+# IF — MySQL IF()
+SqlIf(_("score") >= 50, "pass", "fail").alias("result")
+# IF((score >= 50), 'pass', 'fail') AS result
+```
+
+### Type conversion
+
+```python
+from chocolatine import Cast, SqlType, Col as _
+
+Cast(_("price"), SqlType.Integer).alias("int_price")
+# CAST(price AS INT) AS int_price
+
+Cast(_("code"), SqlType.String).alias("str_code")
+# CAST(code AS VARCHAR(255)) AS str_code
 ```
 
 ### EXISTS / NOT EXISTS
@@ -249,6 +289,33 @@ Query.get_rows("customers c", filters=[Exists(subquery)])
 
 Query.get_rows("customers c", filters=[~Exists(subquery)])
 # SELECT * FROM customers c WHERE NOT EXISTS (...)
+```
+
+### Subqueries (derived tables)
+
+```python
+from chocolatine import Query, Subquery, Col as _
+
+inner = Query.get_rows("orders", cols=[_("customer_id"), _("amount")])
+
+Query.get_rows(Subquery(inner, "o"), cols=[_("o.customer_id")])
+# SELECT o.customer_id FROM (SELECT customer_id, amount FROM orders) AS o
+
+# Subquery in JOIN
+q = Query.get_rows("customers c")
+q.join(Subquery(inner, "o"), _("o.customer_id") == _("c.id"))
+```
+
+### ANY / ALL
+
+```python
+from chocolatine import Query, Col as _
+from chocolatine.expr.any_all import AnySubquery, AllSubquery
+
+prices = Query.get_rows("products", cols=[_("price")])
+
+_("price") > AnySubquery(prices)   # (price > ANY (SELECT price FROM products))
+_("price") < AllSubquery(prices)   # (price < ALL (SELECT price FROM products))
 ```
 
 ### Window functions
@@ -299,14 +366,34 @@ With(
 # WITH RECURSIVE org AS (...) SELECT * FROM org
 ```
 
-### UNION / UNION ALL
+### Set operations
 
 ```python
+# UNION / UNION ALL
 Query.get_rows("customers").union(Query.get_rows("prospects")).build()
 # SELECT * FROM customers UNION SELECT * FROM prospects
 
 Query.get_rows("active").union_all(Query.get_rows("archived")).build()
 # SELECT * FROM active UNION ALL SELECT * FROM archived
+
+# INTERSECT / EXCEPT
+Query.get_rows("a").intersect(Query.get_rows("b")).build()
+# SELECT * FROM a INTERSECT SELECT * FROM b
+
+Query.get_rows("a").except_(Query.get_rows("b")).build()
+# SELECT * FROM a EXCEPT SELECT * FROM b
+
+# ALL variants: intersect_all(), except_all()
+```
+
+### Raw SQL escape hatch
+
+```python
+from chocolatine import RawExpr, Col as _
+
+RawExpr("NOW()").alias("ts")                   # NOW() AS ts
+_("updated_at") == RawExpr("NOW()")            # (updated_at = NOW())
+RawExpr("CURRENT_USER()").alias("user")        # CURRENT_USER() AS user
 ```
 
 ### DDL
@@ -337,9 +424,9 @@ Query.truncate("users")
 
 ```python
 Query.insert_row("products", [_("sku"), _("name"), _("price")], ("ABC", "Widget", 9.99)) \
-    .on_duplicate_key_update(_("price") == 9.99, _("updated_at") == "NOW()")
+    .on_duplicate_key_update(_("price") == 9.99, _("updated_at") == RawExpr("NOW()"))
 # INSERT INTO products (sku, name, price) VALUES ('ABC', 'Widget', 9.99)
-# ON DUPLICATE KEY UPDATE (price = 9.99), (updated_at = 'NOW()')
+# ON DUPLICATE KEY UPDATE (price = 9.99), (updated_at = NOW())
 ```
 
 ### Compact vs extended output
@@ -364,25 +451,27 @@ print(q.build())
 
 **Filtering:** WHERE, HAVING (auto-routed), IS NULL, IS NOT NULL, BETWEEN, IN, LIKE, EXISTS, NOT EXISTS, AND, OR, NOT
 
-**Expressions:** arithmetic (`+`, `-`, `*`, `/`, `%`), string functions, date functions, multi-arg functions, COALESCE, CASE/WHEN, subqueries
+**Expressions:** arithmetic (`+`, `-`, `*`, `/`, `%`), string functions, date functions, COALESCE, NULLIF, IFNULL, IF(), CAST, CASE/WHEN, subqueries, raw SQL
 
 **Aggregations:** COUNT, COUNT(DISTINCT), SUM, AVG, MIN, MAX + GROUP BY + HAVING
 
 **Window functions:** ROW_NUMBER, RANK, DENSE_RANK, NTILE, CUME_DIST, PERCENT_RANK, SUM, AVG, COUNT, MIN, MAX, LAG, LEAD, FIRST_VALUE, LAST_VALUE
 
-**Set operations:** UNION, UNION ALL
+**Set operations:** UNION, UNION ALL, INTERSECT, INTERSECT ALL, EXCEPT, EXCEPT ALL
+
+**Subqueries:** EXISTS, NOT EXISTS, derived tables (FROM subquery), ANY, ALL
 
 **CTEs:** WITH, WITH RECURSIVE (multiple CTEs supported)
 
 **DDL constraints:** NOT NULL, UNIQUE, DEFAULT, AUTO_INCREMENT primary key
 
-**Other:** JOINs (INNER/LEFT/RIGHT/FULL), ORDER BY, LIMIT, OFFSET, DISTINCT, aliases, table prefixes, compact/extended rendering
+**Other:** JOINs (INNER/LEFT/RIGHT/FULL/CROSS/NATURAL), ORDER BY, LIMIT, OFFSET, DISTINCT, aliases, table prefixes, compact/extended rendering
 
 ---
 
 ## SQL dialect
 
-Chocolatine currently targets **MySQL**. Most queries are compatible with MariaDB. PostgreSQL and SQLite support is not guaranteed for dialect-specific features (e.g., `MEDIUMINT`, `DATE_FORMAT`).
+Chocolatine currently targets **MySQL**. Most queries are compatible with MariaDB. PostgreSQL and SQLite support is not guaranteed for dialect-specific features (e.g., `MEDIUMINT`, `DATE_FORMAT`, `IF()`).
 
 ---
 
@@ -396,7 +485,7 @@ pytest
 pytest --cov=chocolatine --cov-report=term-missing
 ```
 
-330 tests, 99% coverage.
+383 tests, 99% coverage.
 
 ---
 

@@ -3,6 +3,7 @@ from typeguard import typechecked
 from .enums.agg_function import AggFunction
 from .enums.sql_function import SqlFunction
 from .expr.col import Col
+from .expr.raw_expr import RawExpr
 from .enums.ordering import Ordering
 
 
@@ -153,3 +154,13 @@ def date(col_name: str) -> Col:
 def md5(col_name: str) -> Col:
     """ Shortcut to create a column and apply the MD5 function """
     return Col(name=col_name, sql_function=SqlFunction.MD5)
+
+
+def now() -> RawExpr:
+    """ Return the current datetime — NOW() """
+    return RawExpr("NOW()")
+
+
+def curdate() -> RawExpr:
+    """ Return the current date — CURDATE() """
+    return RawExpr("CURDATE()")

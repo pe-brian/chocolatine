@@ -147,7 +147,7 @@ def test_col_star_with_ordering_raises():
 
 def test_col_rand():
     col = "prefix" & _("name")
-    assert col.build() == "CONCAT(name, 'prefix')"
+    assert col.build() == "CONCAT('prefix', name)"
 
 
 def test_col_order():

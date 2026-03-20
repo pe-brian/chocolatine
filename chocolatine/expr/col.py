@@ -18,6 +18,7 @@ from ..enums.operator import Operator
 from ..enums.ordering import Ordering
 from ..enums.agg_function import AggFunction
 from ..enums.sql_function import SqlFunction
+from ..enums.interval_unit import IntervalUnit
 
 
 @typechecked
@@ -34,7 +35,8 @@ class Col(ChocExpr):
             type: SqlType | None = None,
             not_null: bool = False,
             unique: bool = False,
-            default: int | float | str | bool | None = None
+            default: int | float | str | bool | None = None,
+            check: str | None = None
     ) -> None:
         """
         Define a SQL column.
@@ -87,6 +89,7 @@ class Col(ChocExpr):
         self._not_null = not_null
         self._unique = unique
         self._default = default
+        self._check = check
         self._distinct_agg = False
 
         super().__init__("{full_name}@{_alias}: AS {_alias}:;")
@@ -116,6 +119,8 @@ class Col(ChocExpr):
             parts.append("UNIQUE")
         if self._default is not None:
             parts.append(f"DEFAULT {quote_expr(self._default)}")
+        if self._check is not None:
+            parts.append(f"CHECK ({self._check})")
         return " ".join(parts)
 
     def copy(self) -> Self:
@@ -167,22 +172,22 @@ class Col(ChocExpr):
         from .arith_expr import ArithExpr
         return ArithExpr(self, "%", other)
 
-    def __gt__(self, value: Col | int | float | When) -> Condition:
+    def __gt__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
-    
-    def __ge__(self, value: Col | int | float | When) -> Condition:
+
+    def __ge__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterOrEqualThan, right_value=value)
-    
-    def __lt__(self, value: Col | int | float | When) -> Condition:
+
+    def __lt__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.LowerThan, right_value=value)
-    
-    def __le__(self, value: Col | int | float | When) -> Condition:
+
+    def __le__(self, value: Col | int | float | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.LowerOrEqualThan, right_value=value)
 
-    def __eq__(self, value: Col | int | float | str | When) -> Condition:
+    def __eq__(self, value: Col | int | float | str | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.Equal, right_value=value)
 
-    def __ne__(self, value: Col | int | float | str | When) -> Condition:
+    def __ne__(self, value: Col | int | float | str | When | ChocExpr) -> Condition:
         return Condition(left_value=self, op=Operator.NotEqual, right_value=value)
 
     def __and__(self, value: Col | str) -> Self:
@@ -193,7 +198,11 @@ class Col(ChocExpr):
         return self
 
     def __rand__(self, value: Col | str) -> Self:
-        return self.__and__(value)
+        if not self._concatenation:
+            self._concatenation.append(self.copy())
+        self._sql_function = None
+        self._concatenation.insert(0, value)
+        return self
 
     def __rshift__(self, value: str) -> Condition:
         return self.like(value)
@@ -386,6 +395,26 @@ class Col(ChocExpr):
         """ Apply the DATE_FORMAT function — format a date/datetime using a format string """
         self._sql_function = SqlFunction.DateFormat
         self._sql_function_args = (fmt,)
+        return self
+
+    def datediff(self, other: Self | str) -> Self:
+        """ Apply the DATEDIFF function — number of days between this date and other """
+        self._sql_function = SqlFunction.DateDiff
+        self._sql_function_args = (other,)
+        return self
+
+    def date_add(self, value: int, unit: IntervalUnit) -> Self:
+        """ Apply DATE_ADD — add an interval to this date """
+        from .raw_expr import RawExpr
+        self._sql_function = SqlFunction.DateAdd
+        self._sql_function_args = (RawExpr(f"INTERVAL {value} {unit.value}"),)
+        return self
+
+    def date_sub(self, value: int, unit: IntervalUnit) -> Self:
+        """ Apply DATE_SUB — subtract an interval from this date """
+        from .raw_expr import RawExpr
+        self._sql_function = SqlFunction.DateSub
+        self._sql_function_args = (RawExpr(f"INTERVAL {value} {unit.value}"),)
         return self
 
     def count_distinct(self) -> Self:

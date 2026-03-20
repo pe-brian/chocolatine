@@ -26,3 +26,11 @@ from .with_cte import With  # noqa
 from .window import Window  # noqa
 from .on_duplicate_key_update import OnDuplicateKeyUpdate  # noqa
 from .arith_expr import ArithExpr  # noqa
+from .raw_expr import RawExpr  # noqa
+from .nullif import NullIf  # noqa
+from .cast import Cast  # noqa
+from .ifnull import IfNull  # noqa
+from .sql_if import SqlIf  # noqa
+from .subquery import Subquery  # noqa
+from .any_all import AnySubquery, AllSubquery  # noqa
+from .foreign_key import ForeignKey  # noqa
