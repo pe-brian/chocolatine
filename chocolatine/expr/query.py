@@ -19,6 +19,7 @@ from ..enums.operator import Operator
 from .condition import Condition
 from .col import Col
 from .table import Table
+from .subquery import Subquery
 from .update_set import UpdateSet
 from .union import Union
 from .on_duplicate_key_update import OnDuplicateKeyUpdate
@@ -34,9 +35,9 @@ class Query(ChocExpr):
             compact: bool = True,
             limit: int | None = None,
             offset: int | None = None,
-            table: str | Table | None = None,
+            table: str | Table | Subquery | None = None,
             unique: bool = False,
-            joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
+            joins: Iterable[Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None] | Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None, JoinType | None]] | None = None,
             cols: Iterable[str | Col | ChocExpr] | None = None,
             groups: Iterable[str] | None = None,
             filters: Iterable[Condition | ChocExpr] | None = None,
@@ -261,9 +262,9 @@ class Query(ChocExpr):
     
     @staticmethod
     def get_row(
-        table: str | Table,
+        table: str | Table | Subquery,
         unique: bool = False,
-        joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
+        joins: Iterable[Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None] | Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None, JoinType | None]] | None = None,
         cols: Iterable[str | Col | ChocExpr] | None = None,
         groups: Iterable[str] | None = None,
         filters: Iterable[Condition | ChocExpr] | None = None,
@@ -271,14 +272,14 @@ class Query(ChocExpr):
     ):
         """ Select a single row (LIMIT 1) """
         return Query.get_rows(table=table, limit=1, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
-    
+
     @staticmethod
     def get_rows(
-        table: str | Table,
+        table: str | Table | Subquery,
         limit: int | None = None,
         offset: int | None = None,
         unique: bool = False,
-        joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
+        joins: Iterable[Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None] | Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None, JoinType | None]] | None = None,
         cols: Iterable[str | Col | ChocExpr] | None = None,
         groups: Iterable[str] | None = None,
         filters: Iterable[Condition | ChocExpr] | None = None,
@@ -339,7 +340,7 @@ class Query(ChocExpr):
     def delete_mode(self) -> bool:
         return self._query_mode == QueryMode.Delete
 
-    def table(self, val: str | Table | None) -> Self:
+    def table(self, val: str | Table | Subquery | None) -> Self:
         """ Set the table name """
         self._select_from.from_expr.table = val
         return self
@@ -386,12 +387,13 @@ class Query(ChocExpr):
         self._group_by.cols = cols_names
         return self
 
-    def join(self, table: str | Table, condition: Condition | str | Iterable[str] | None = None, join_type: JoinType | None = JoinType.Inner) -> Self:
+    def join(self, table: str | Table | Subquery, condition: Condition | str | Iterable[str] | None = None, join_type: JoinType | None = JoinType.Inner) -> Self:
         """ Join two tables together """
-        self._joins.append(Join(table=table if isinstance(table, Table) else Table(name=table), condition=condition, join_type=join_type, compact=self._compact))
+        t = table if isinstance(table, (Table, Subquery)) else Table(name=table)
+        self._joins.append(Join(table=t, condition=condition, join_type=join_type, compact=self._compact))
         return self
 
-    def join_many(self, *joins_params: Tuple[str | Table, Condition | str | Iterable[str] | None] | Tuple[str | Table, Condition | str | Iterable[str] | None, JoinType | None]) -> Self:
+    def join_many(self, *joins_params: Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None] | Tuple[str | Table | Subquery, Condition | str | Iterable[str] | None, JoinType | None]) -> Self:
         """ Join more than two tables together """
         for join_params in joins_params:
             self.join(*join_params)

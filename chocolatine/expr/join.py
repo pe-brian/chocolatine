@@ -13,7 +13,7 @@ class Join(ChocExpr):
     """ Select expression """
     def __init__(
             self,
-            table: Table,
+            table: Table | ChocExpr,
             condition: Condition | str | Iterable[str] | None = None,
             join_type: JoinType = JoinType.Inner,
             compact: bool = True
