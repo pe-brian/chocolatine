@@ -4,8 +4,8 @@ from typeguard import typechecked
 from choc_expr import Expr as ChocExpr
 
 from .delete_from import DeleteFrom
-from ..query_mode import QueryMode
-from ..alter_mode import AlterMode
+from ..enums.query_mode import QueryMode
+from ..enums.alter_mode import AlterMode
 from .join import Join
 from .order_by import OrderBy
 from .group_by import GroupBy
@@ -13,8 +13,8 @@ from .having import Having
 from .where import Where
 from .select_from import SelectFrom
 from .limit import Limit
-from ..agg_function import AggFunction
-from ..join_type import JoinType
+from ..enums.agg_function import AggFunction
+from ..enums.join_type import JoinType
 from .condition import Condition
 from .col import Col
 from .table import Table

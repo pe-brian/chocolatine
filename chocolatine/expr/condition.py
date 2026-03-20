@@ -9,7 +9,7 @@ from typeguard import typechecked
 from choc_expr import Expr as ChocExpr
 
 from ..utils import quote_expr
-from ..operator import Operator
+from ..enums.operator import Operator
 
 
 @typechecked

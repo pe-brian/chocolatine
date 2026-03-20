@@ -13,11 +13,11 @@ from choc_expr import Expr as ChocExpr
 
 from .when import When
 from .condition import Condition
-from ..sql_type import SqlType
-from ..operator import Operator
-from ..ordering import Ordering
-from ..agg_function import AggFunction
-from ..sql_function import SqlFunction
+from ..enums.sql_type import SqlType
+from ..enums.operator import Operator
+from ..enums.ordering import Ordering
+from ..enums.agg_function import AggFunction
+from ..enums.sql_function import SqlFunction
 
 
 @typechecked

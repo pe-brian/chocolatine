@@ -1,9 +1,9 @@
 from typeguard import typechecked
 
-from .agg_function import AggFunction
-from .sql_function import SqlFunction
+from .enums.agg_function import AggFunction
+from .enums.sql_function import SqlFunction
 from .expr.col import Col
-from .ordering import Ordering
+from .enums.ordering import Ordering
 
 
 @typechecked
