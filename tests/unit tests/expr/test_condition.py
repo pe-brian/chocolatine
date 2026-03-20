@@ -54,3 +54,17 @@ def test_condition_chained_and():
 def test_condition_chained_or():
     from chocolatine import Col as _
     assert ((_("status") == "active") | (_("status") == "pending")).build() == "((status = 'active') OR (status = 'pending'))"
+
+
+def test_condition_rand():
+    from chocolatine import Col as _
+    c1 = _("a") == 1
+    c2 = _("b") == 2
+    assert (c2.__rand__(c1)).build() == "((b = 2) AND (a = 1))"
+
+
+def test_condition_ror():
+    from chocolatine import Col as _
+    c1 = _("a") == 1
+    c2 = _("b") == 2
+    assert (c2.__ror__(c1)).build() == "((b = 2) OR (a = 1))"

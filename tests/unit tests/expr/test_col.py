@@ -137,3 +137,50 @@ def test_col_ordering_prefix_desc():
     assert _("<:amount").build() == "amount"
     assert _("<:amount")._ordering.value == "DESC"
 
+
+def test_col_star_with_ordering_raises():
+    import pytest
+    from chocolatine import Ordering
+    with pytest.raises(ValueError):
+        _("*", ordering=Ordering.Ascending)
+
+
+def test_col_rand():
+    col = "prefix" & _("name")
+    assert col.build() == "CONCAT(name, 'prefix')"
+
+
+def test_col_order():
+    from chocolatine import Ordering
+    assert _("amount").order(Ordering.Descending)._ordering == Ordering.Descending
+
+
+def test_col_asc():
+    from chocolatine import Ordering
+    assert _("amount").asc()._ordering == Ordering.Ascending
+
+
+def test_col_desc():
+    from chocolatine import Ordering
+    assert _("amount").desc()._ordering == Ordering.Descending
+
+
+def test_col_alias_with_asc_prefix():
+    from chocolatine import Ordering
+    col = _("amount").alias(">:total")
+    assert col._alias == "total"
+    assert col._ordering == Ordering.Ascending
+
+
+def test_col_alias_with_desc_prefix():
+    from chocolatine import Ordering
+    col = _("amount").alias("<:total")
+    assert col._alias == "total"
+    assert col._ordering == Ordering.Descending
+
+
+def test_col_aggregate():
+    from chocolatine import AggFunction
+    assert _("amount").aggregate(AggFunction.Sum).build() == "SUM(amount)"
+    assert _("amount").aggregate(AggFunction.Average).build() == "AVG(amount)"
+

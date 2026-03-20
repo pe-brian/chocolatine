@@ -325,7 +325,7 @@ class Query(ChocExpr):
 
     def head(self, length: int = 1) -> Self:
         """ Filter on the first N rows """
-        self._limit = length
+        self._limit = Limit(length=length, compact=False)
         return self
 
     def filter(self, condition: Condition) -> Self:

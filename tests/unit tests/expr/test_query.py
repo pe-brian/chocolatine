@@ -153,3 +153,40 @@ def test_query_get_rows_with_left_join():
 
 def test_query_get_rows_no_filter():
     assert Query.get_rows(table="people").build() == "SELECT * FROM people"
+
+
+def test_query_read_mode():
+    assert Query(query_mode=QueryMode.Select).read_mode is True
+    assert Query(query_mode=QueryMode.Delete).read_mode is False
+
+
+def test_query_update_mode():
+    assert Query(query_mode=QueryMode.Update).update_mode is True
+    assert Query(query_mode=QueryMode.Select).update_mode is False
+
+
+def test_query_delete_mode():
+    assert Query(query_mode=QueryMode.Delete).delete_mode is True
+    assert Query(query_mode=QueryMode.Select).delete_mode is False
+
+
+def test_query_fluent_table():
+    q = Query(query_mode=QueryMode.Select)
+    q.table("people")
+    assert q.build() == "SELECT * FROM people"
+
+
+def test_query_fluent_distinct():
+    assert Query(query_mode=QueryMode.Select, table="people").distinct().build() == "SELECT DISTINCT(*) FROM people"
+
+
+def test_query_fluent_head():
+    q = Query(query_mode=QueryMode.Select, table="people")
+    q.head(5)
+    assert q.build() == "SELECT * FROM people LIMIT 5"
+
+
+def test_query_rand():
+    q1 = Query.get_rows(table="a")
+    q2 = Query.get_rows(table="b")
+    assert q2.__rand__(q1).build() == q2.union(q1).build()
