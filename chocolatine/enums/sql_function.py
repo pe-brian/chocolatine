@@ -42,4 +42,5 @@ class SqlFunction(Enum):
     Now = "NOW"
     Date = "DATE"
     DateDiff = "DATEDIFF"
+    RPad = "RPAD"
     Coalesce = "COALESCE"

@@ -77,6 +77,7 @@ class Col(ChocExpr):
 
         self._agg_function = agg_function
         self._sql_function = sql_function
+        self._sql_function_args: tuple = ()
         self._ordering = ordering
         self._concatenation = []
         self._alias = alias
@@ -100,7 +101,9 @@ class Col(ChocExpr):
             inner = f"DISTINCT {name}" if self._distinct_agg else name
             return f"{self._agg_function.value}({inner})"
         if self._sql_function:
-            return f"{self._sql_function.value}({f"{name}"})"
+            from ..utils import quote_expr
+            extra = "".join(f", {quote_expr(a)}" for a in self._sql_function_args)
+            return f"{self._sql_function.value}({name}{extra})"
         return f"{name}"
     
     @property
@@ -117,7 +120,7 @@ class Col(ChocExpr):
 
     def copy(self) -> Self:
         """ Copy the column """
-        return Col(
+        col = Col(
             name=self._name,
             alias=self._alias,
             agg_function=self._agg_function,
@@ -125,6 +128,8 @@ class Col(ChocExpr):
             ordering=self._ordering,
             table_name=self._table_name
         )
+        col._sql_function_args = self._sql_function_args
+        return col
 
     def __gt__(self, value: Col | int | float | When) -> Condition:
         return Condition(left_value=self, op=Operator.GreaterThan, right_value=value)
@@ -233,9 +238,10 @@ class Col(ChocExpr):
         self._sql_function = SqlFunction.Abs
         return self
 
-    def round(self) -> Self:
-        """ Apply the ROUND function """
+    def round(self, decimals: int | None = None) -> Self:
+        """ Apply the ROUND function, optionally to a given number of decimal places """
         self._sql_function = SqlFunction.Round
+        self._sql_function_args = (decimals,) if decimals is not None else ()
         return self
 
     def floor(self) -> Self:
@@ -302,6 +308,48 @@ class Col(ChocExpr):
     def count(self) -> Self:
         """ Apply the "count" function """
         self._agg_function = AggFunction.Count
+        return self
+
+    def left(self, n: int) -> Self:
+        """ Apply the LEFT function — return the leftmost n characters """
+        self._sql_function = SqlFunction.Left
+        self._sql_function_args = (n,)
+        return self
+
+    def right(self, n: int) -> Self:
+        """ Apply the RIGHT function — return the rightmost n characters """
+        self._sql_function = SqlFunction.Right
+        self._sql_function_args = (n,)
+        return self
+
+    def replace(self, search: str, replacement: str) -> Self:
+        """ Apply the REPLACE function — replace all occurrences of search with replacement """
+        self._sql_function = SqlFunction.Replace
+        self._sql_function_args = (search, replacement)
+        return self
+
+    def substring(self, start: int, length: int | None = None) -> Self:
+        """ Apply the SUBSTRING function — extract a substring starting at start (1-based) """
+        self._sql_function = SqlFunction.Substring
+        self._sql_function_args = (start,) if length is None else (start, length)
+        return self
+
+    def lpad(self, length: int, pad: str) -> Self:
+        """ Apply the LPAD function — left-pad the value to the given length using pad """
+        self._sql_function = SqlFunction.LPad
+        self._sql_function_args = (length, pad)
+        return self
+
+    def rpad(self, length: int, pad: str) -> Self:
+        """ Apply the RPAD function — right-pad the value to the given length using pad """
+        self._sql_function = SqlFunction.RPad
+        self._sql_function_args = (length, pad)
+        return self
+
+    def date_format(self, fmt: str) -> Self:
+        """ Apply the DATE_FORMAT function — format a date/datetime using a format string """
+        self._sql_function = SqlFunction.DateFormat
+        self._sql_function_args = (fmt,)
         return self
 
     def count_distinct(self) -> Self:
