@@ -23,3 +23,4 @@ from .view import View  # noqa
 from .coalesce import Coalesce  # noqa
 from .exists import Exists  # noqa
 from .with_cte import With  # noqa
+from .window import Window  # noqa
