@@ -18,6 +18,7 @@ from ..enums.operator import Operator
 from ..enums.ordering import Ordering
 from ..enums.agg_function import AggFunction
 from ..enums.sql_function import SqlFunction
+from ..enums.interval_unit import IntervalUnit
 
 
 @typechecked
@@ -396,6 +397,20 @@ class Col(ChocExpr):
         """ Apply the DATEDIFF function — number of days between this date and other """
         self._sql_function = SqlFunction.DateDiff
         self._sql_function_args = (other,)
+        return self
+
+    def date_add(self, value: int, unit: IntervalUnit) -> Self:
+        """ Apply DATE_ADD — add an interval to this date """
+        from .raw_expr import RawExpr
+        self._sql_function = SqlFunction.DateAdd
+        self._sql_function_args = (RawExpr(f"INTERVAL {value} {unit.value}"),)
+        return self
+
+    def date_sub(self, value: int, unit: IntervalUnit) -> Self:
+        """ Apply DATE_SUB — subtract an interval from this date """
+        from .raw_expr import RawExpr
+        self._sql_function = SqlFunction.DateSub
+        self._sql_function_args = (RawExpr(f"INTERVAL {value} {unit.value}"),)
         return self
 
     def count_distinct(self) -> Self:

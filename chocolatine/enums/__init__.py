@@ -7,3 +7,4 @@ from .query_mode import QueryMode  # noqa
 from .sql_function import SqlFunction  # noqa
 from .sql_type import SqlType  # noqa
 from .view_mode import ViewMode  # noqa
+from .interval_unit import IntervalUnit  # noqa

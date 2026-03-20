@@ -44,3 +44,5 @@ class SqlFunction(Enum):
     DateDiff = "DATEDIFF"
     RPad = "RPAD"
     Coalesce = "COALESCE"
+    DateAdd = "DATE_ADD"
+    DateSub = "DATE_SUB"
