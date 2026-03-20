@@ -103,3 +103,37 @@ def test_col_lower_than():
 def test_col_lower_or_equal_than():
     assert (_("age") <= 25).build() == "(age <= 25)"
 
+
+def test_col_invalid_name_empty():
+    import pytest
+    with pytest.raises(ValueError):
+        _("")
+
+
+def test_col_invalid_name_chars():
+    import pytest
+    with pytest.raises(ValueError):
+        _("invalid; DROP TABLE users--")
+
+
+def test_col_star_with_alias_raises():
+    import pytest
+    with pytest.raises(ValueError):
+        _("*", alias="a")
+
+
+def test_col_star_with_table_name_raises():
+    import pytest
+    with pytest.raises(ValueError):
+        _("*", table_name="t")
+
+
+def test_col_ordering_prefix_asc():
+    assert _(">:amount").build() == "amount"
+    assert _(">:amount")._ordering.value == "ASC"
+
+
+def test_col_ordering_prefix_desc():
+    assert _("<:amount").build() == "amount"
+    assert _("<:amount")._ordering.value == "DESC"
+

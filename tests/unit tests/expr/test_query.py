@@ -129,3 +129,27 @@ def test_query_get_row_from_table():
         table="people",
         filters=(_("age") > 18,)
     ).build() == "SELECT * FROM people WHERE (age > 18) LIMIT 1"
+
+
+def test_query_delete_rows_no_filter():
+    assert Query(query_mode=QueryMode.Delete, table="people").build() == "DELETE FROM people"
+
+
+def test_query_delete_rows_multiple_filters():
+    assert Query.delete_rows(
+        table="people",
+        filter=(_("age") > 18) & (_("city") == "Paris")
+    ).build() == "DELETE FROM people WHERE ((age > 18) AND (city = 'Paris'))"
+
+
+def test_query_get_rows_with_left_join():
+    from chocolatine import JoinType
+    assert Query.get_rows(
+        table="people",
+        joins=[("city", _("people.city_id") == _("city.id"), JoinType.Left)],
+        cols=(_("first_name"), _("city.name"))
+    ).build() == "SELECT first_name, city.name FROM people LEFT JOIN city ON (people.city_id = city.id)"
+
+
+def test_query_get_rows_no_filter():
+    assert Query.get_rows(table="people").build() == "SELECT * FROM people"

@@ -39,3 +39,18 @@ def test_condition_op_like():
 
 def test_condition_op_in():
     assert Condition(42, Operator.In, (1, 2, 24, 42)).build() == "(42 IN (1, 2, 24, 42))"
+
+
+def test_condition_negate():
+    from chocolatine import Col as _
+    assert (~(_("age") > 25)).build() == "NOT (age > 25)"
+
+
+def test_condition_chained_and():
+    from chocolatine import Col as _
+    assert ((_("age") > 18) & (_("age") < 65)).build() == "((age > 18) AND (age < 65))"
+
+
+def test_condition_chained_or():
+    from chocolatine import Col as _
+    assert ((_("status") == "active") | (_("status") == "pending")).build() == "((status = 'active') OR (status = 'pending'))"
