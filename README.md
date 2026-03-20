@@ -3,6 +3,7 @@
 ![Python](https://img.shields.io/badge/python-3.13+-blue.svg)
 ![License](https://img.shields.io/pypi/l/chocolatine)
 ![Downloads](https://img.shields.io/pypi/dm/chocolatine)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
 
 # chocolatine
