@@ -24,3 +24,4 @@ from .coalesce import Coalesce  # noqa
 from .exists import Exists  # noqa
 from .with_cte import With  # noqa
 from .window import Window  # noqa
+from .on_duplicate_key_update import OnDuplicateKeyUpdate  # noqa

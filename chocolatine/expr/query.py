@@ -20,6 +20,7 @@ from .col import Col
 from .table import Table
 from .update_set import UpdateSet
 from .union import Union
+from .on_duplicate_key_update import OnDuplicateKeyUpdate
 
 
 @typechecked
@@ -87,8 +88,9 @@ class Query(ChocExpr):
                 if values is None:
                     values = []
                 self._values = values
+                self._on_duplicate = OnDuplicateKeyUpdate(compact=compact)
                 super().__init__(
-                    "INSERT INTO {_table} ({$(_cols)})~VALUES {$(_values)}",
+                    "INSERT INTO {_table} ({$(_cols)})~VALUES {$(_values)}~{_on_duplicate}",
                     compact=compact
                 )
             case QueryMode.Alter:
@@ -303,6 +305,11 @@ class Query(ChocExpr):
     def truncate(table: str | Table, compact: bool = True):
         """ Build a TRUNCATE TABLE query """
         return Query(query_mode=QueryMode.Truncate, table=table, compact=compact)
+
+    def on_duplicate_key_update(self, *assignations: Condition) -> Self:
+        """ Add an ON DUPLICATE KEY UPDATE clause to an INSERT query """
+        self._on_duplicate.assignations = assignations
+        return self
 
     def compact(self):
         """ Render the query on a single line """
