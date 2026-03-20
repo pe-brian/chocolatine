@@ -35,7 +35,7 @@ class Query(ChocExpr):
             table: str | Table | None = None,
             unique: bool = False,
             joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
-            cols: Iterable[str | Col] | None = None,
+            cols: Iterable[str | Col | ChocExpr] | None = None,
             groups: Iterable[str] | None = None,
             filters: Iterable[Condition] | None = None,
             assignations: Iterable[Condition] | None = None,
@@ -261,7 +261,7 @@ class Query(ChocExpr):
         table: str | Table,
         unique: bool = False,
         joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
-        cols: Iterable[str | Col] | None = None,
+        cols: Iterable[str | Col | ChocExpr] | None = None,
         groups: Iterable[str] | None = None,
         filters: Iterable[Condition] | None = None,
         compact: bool = True
@@ -276,7 +276,7 @@ class Query(ChocExpr):
         offset: int | None = None,
         unique: bool = False,
         joins: Iterable[Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]] | None = None,
-        cols: Iterable[str | Col] | None = None,
+        cols: Iterable[str | Col | ChocExpr] | None = None,
         groups: Iterable[str] | None = None,
         filters: Iterable[Condition] | None = None,
         compact: bool = True
@@ -325,7 +325,7 @@ class Query(ChocExpr):
         self._select_from.from_expr.table = val
         return self
 
-    def select(self, *vals: str | Col) -> Self:
+    def select(self, *vals: str | Col | ChocExpr) -> Self:
         """ Set the selected cols """
         self._select_from.select.cols = vals
         return self
