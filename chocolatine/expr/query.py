@@ -371,7 +371,7 @@ class Query(ChocExpr):
 
     def filter(self, condition: Condition | ChocExpr) -> Self:
         """ Filter the rows according to the given condition, combining with AND if a condition already exists """
-        if any(x in condition.build() for x in set(e.value for e in AggFunction)):
+        if any(f"{e.value}(" in condition.build() for e in AggFunction):
             target = self._having
         else:
             target = self._where
@@ -386,12 +386,12 @@ class Query(ChocExpr):
         self._group_by.cols = cols_names
         return self
 
-    def join(self, table: str | Table, condition: Condition | str | Iterable[str], join_type: JoinType | None = JoinType.Inner) -> Self:
+    def join(self, table: str | Table, condition: Condition | str | Iterable[str] | None = None, join_type: JoinType | None = JoinType.Inner) -> Self:
         """ Join two tables together """
         self._joins.append(Join(table=table if isinstance(table, Table) else Table(name=table), condition=condition, join_type=join_type, compact=self._compact))
         return self
 
-    def join_many(self, *joins_params: Tuple[str | Table, Condition | str | Iterable[str]] | Tuple[str | Table, Condition | str | Iterable[str], JoinType | None]) -> Self:
+    def join_many(self, *joins_params: Tuple[str | Table, Condition | str | Iterable[str] | None] | Tuple[str | Table, Condition | str | Iterable[str] | None, JoinType | None]) -> Self:
         """ Join more than two tables together """
         for join_params in joins_params:
             self.join(*join_params)
@@ -404,6 +404,22 @@ class Query(ChocExpr):
     def union_all(self, other_request: Self) -> Union:
         """ Combine two queries with UNION ALL (keeps duplicates) """
         return Union(self, other_request, all=True, compact=self._compact)
+
+    def intersect(self, other_request: Self) -> Union:
+        """ Combine two queries with INTERSECT (rows in both) """
+        return Union(self, other_request, keyword="INTERSECT", compact=self._compact)
+
+    def intersect_all(self, other_request: Self) -> Union:
+        """ Combine two queries with INTERSECT ALL """
+        return Union(self, other_request, all=True, keyword="INTERSECT", compact=self._compact)
+
+    def except_(self, other_request: Self) -> Union:
+        """ Combine two queries with EXCEPT (rows in left not in right) """
+        return Union(self, other_request, keyword="EXCEPT", compact=self._compact)
+
+    def except_all(self, other_request: Self) -> Union:
+        """ Combine two queries with EXCEPT ALL """
+        return Union(self, other_request, all=True, keyword="EXCEPT", compact=self._compact)
 
     def __and__(self, other_request: Self) -> Union:
         return self.union(other_request)

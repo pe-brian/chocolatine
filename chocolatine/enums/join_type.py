@@ -7,3 +7,5 @@ class JoinType(Enum):
     Left = "LEFT"
     Right = "RIGHT"
     Full = "FULL"
+    Cross = "CROSS"
+    Natural = "NATURAL"

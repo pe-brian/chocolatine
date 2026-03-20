@@ -27,3 +27,5 @@ from .window import Window  # noqa
 from .on_duplicate_key_update import OnDuplicateKeyUpdate  # noqa
 from .arith_expr import ArithExpr  # noqa
 from .raw_expr import RawExpr  # noqa
+from .nullif import NullIf  # noqa
+from .cast import Cast  # noqa

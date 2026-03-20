@@ -392,6 +392,12 @@ class Col(ChocExpr):
         self._sql_function_args = (fmt,)
         return self
 
+    def datediff(self, other: Self | str) -> Self:
+        """ Apply the DATEDIFF function — number of days between this date and other """
+        self._sql_function = SqlFunction.DateDiff
+        self._sql_function_args = (other,)
+        return self
+
     def count_distinct(self) -> Self:
         """ Apply COUNT(DISTINCT col) """
         self._agg_function = AggFunction.Count
