@@ -22,6 +22,14 @@ class Condition(ChocExpr):
             right_value: int | float | str | Col | When | Self,
             negate: bool = False
     ) -> None:
+        """
+        Define a SQL condition (e.g. col > 5, col LIKE '%foo%').
+
+        :param left_value: Left-hand side of the expression.
+        :param op: Comparison or logical operator.
+        :param right_value: Right-hand side of the expression.
+        :param negate: If True, wrap the condition with NOT.
+        """
         self._left_value = left_value
         self._op = op
         self._right_value = right_value

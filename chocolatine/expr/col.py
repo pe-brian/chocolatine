@@ -33,6 +33,18 @@ class Col(ChocExpr):
             table_name: str | None = None,
             type: SqlType | None = None
     ) -> None:
+        """
+        Define a SQL column.
+
+        :param name: Column name. Supports shorthand prefixes '>:' (ASC) and '<:' (DESC),
+                     table prefix 'table.col', and alias suffix 'col:alias' or 'col@alias'.
+        :param alias: Optional alias (AS clause).
+        :param agg_function: Aggregate function to wrap the column (COUNT, SUM, AVG, MIN, MAX).
+        :param sql_function: Scalar SQL function to apply (UPPER, LOWER, etc.).
+        :param ordering: Sort direction for ORDER BY.
+        :param table_name: Table prefix for the column reference.
+        :param type: SQL type, used in CREATE TABLE / ALTER TABLE contexts.
+        """
         if not name:
             raise ValueError("The name parameter must not be empty")
         if name.startswith("<:"):

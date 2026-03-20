@@ -45,7 +45,26 @@ class Query(ChocExpr):
             alter_new_col: Col | str | None = None,
             alter_col_after: Col | str | None = None
     ) -> None:
-        """"""
+        """
+        Build a SQL query.
+
+        :param query_mode: Type of query (Select, Insert, Update, Delete, Create, Alter).
+        :param compact: If True, render the query on a single line.
+        :param limit: Maximum number of rows to return (SELECT only).
+        :param table: Target table name or Table object.
+        :param unique: If True, add DISTINCT to the SELECT clause.
+        :param joins: List of join definitions as (table, condition[, join_type]) tuples.
+        :param cols: Columns to select or define (SELECT / CREATE).
+        :param groups: Column names to group by.
+        :param filters: Conditions applied to WHERE or HAVING (auto-routed).
+        :param assignations: Column=value assignments for UPDATE / SET.
+        :param values: Row values for INSERT.
+        :param auto_id: If True, add an AUTO_INCREMENT primary key (CREATE only).
+        :param alter_mode: Alteration type (Add, Drop, Rename, Change).
+        :param alter_col: Column to alter.
+        :param alter_new_col: New column definition for Rename / Change / Add.
+        :param alter_col_after: Insert the new column after this column (Add only).
+        """
         self._compact = compact
         self._query_mode = query_mode
         self._table = table
@@ -106,9 +125,7 @@ class Query(ChocExpr):
                 self._delete_from = DeleteFrom(table=table, compact=compact)
                 if filters is None:
                     filters = []
-                self._where = Where(condition=filters[0], compact=False)
-                for filter in filters:
-                    self.filter(filter)
+                self._where = Where(compact=False)
                 for filter in filters:
                     self.filter(filter)
                 super().__init__(
@@ -166,7 +183,7 @@ class Query(ChocExpr):
         after: Col | str | None = None,
         compact: bool = True
     ):
-        """"""
+        """ Build an ALTER TABLE query """
         return Query(query_mode=QueryMode.Alter, alter_mode=alter_mode, table=table, alter_col=col, alter_new_col=new_col, alter_col_after=after, compact=compact)
     
     @staticmethod
@@ -176,7 +193,7 @@ class Query(ChocExpr):
         after: Col | str | None = None,
         compact: bool = True
     ):
-        """"""
+        """ Add a column to a table """
         return Query.alter_table(table=table, alter_mode=AlterMode.Add, new_col=col, after=after, compact=compact)
     
     @staticmethod
@@ -186,7 +203,7 @@ class Query(ChocExpr):
         new_col: Col | str,
         compact: bool = True
     ):
-        """"""
+        """ Rename a column in a table """
         return Query.alter_table(table=table, alter_mode=AlterMode.Rename, col=col, new_col=new_col, compact=compact)
     
     @staticmethod
@@ -196,7 +213,7 @@ class Query(ChocExpr):
         new_col: Col | str,
         compact: bool = True
     ):
-        """"""
+        """ Change a column definition in a table """
         return Query.alter_table(table=table, alter_mode=AlterMode.Change, col=col, new_col=new_col, compact=compact)
     
     @staticmethod
@@ -205,7 +222,7 @@ class Query(ChocExpr):
         col: Col | str,
         compact: bool = True
     ):
-        """"""
+        """ Drop a column from a table """
         return Query.alter_table(table=table, alter_mode=AlterMode.Drop, col=col, compact=compact)
     
     @staticmethod
@@ -215,7 +232,7 @@ class Query(ChocExpr):
         row: Iterable[Any],
         compact: bool = True
     ):
-        """"""
+        """ Insert a single row into a table """
         return Query(query_mode=QueryMode.Insert, table=table, cols=cols, values=(row,), compact=compact)
     
     @staticmethod
@@ -225,12 +242,12 @@ class Query(ChocExpr):
         rows: Iterable[Iterable[Any]],
         compact: bool = True
     ):
-        """"""
+        """ Insert multiple rows into a table """
         return Query(query_mode=QueryMode.Insert, table=table, cols=cols, values=rows, compact=compact)
     
     @staticmethod
     def delete_rows(table: str | Table, filter: Condition, compact: bool = True):
-        """"""
+        """ Delete rows matching the given condition """
         return Query(query_mode=QueryMode.Delete, table=table, filters=[filter], compact=compact)
     
     @staticmethod
@@ -243,7 +260,7 @@ class Query(ChocExpr):
         filters: Iterable[Condition] | None = None,
         compact: bool = True
     ):
-        """"""
+        """ Select a single row (LIMIT 1) """
         return Query.get_rows(table=table, limit=1, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
     
     @staticmethod
@@ -257,21 +274,21 @@ class Query(ChocExpr):
         filters: Iterable[Condition] | None = None,
         compact: bool = True
     ):
-        """"""
+        """ Select rows, with optional filters, joins, grouping, and limit """
         return Query(query_mode=QueryMode.Select, table=table, limit=limit, unique=unique, joins=joins, cols=cols, groups=groups, filters=filters, compact=compact)
     
     @staticmethod
     def update_rows(table: str | Table, filters: Iterable[Condition], assignations: Iterable[Condition], compact: bool = True):
-        """"""
+        """ Update rows matching the given conditions """
         return Query(query_mode=QueryMode.Update, table=table, filters=filters, assignations=assignations, compact=compact)
     
     @staticmethod
     def create_table(table: str | Table, cols: Iterable[Col], auto_id: bool = False, compact: bool = True):
-        """"""
+        """ Build a CREATE TABLE query """
         return Query(query_mode=QueryMode.Create, table=table, cols=cols, auto_id=auto_id, compact=compact)
 
     def compact(self):
-        """"""
+        """ Render the query on a single line """
         self._compact = True
 
     @property

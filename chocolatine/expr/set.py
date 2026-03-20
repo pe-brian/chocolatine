@@ -19,11 +19,11 @@ class Set(ChocExpr):
 
     @property
     def assignations(self):
-        return self._cols
+        return self._assignations
 
     @assignations.setter
     def assignations(self, value):
-        self._cols = [Col(col) if type(col) is str else col for col in (value or [])]
+        self._assignations = [Col(col) if isinstance(col, str) else col for col in (value or [])]
 
     @property
     def buildable(self):
